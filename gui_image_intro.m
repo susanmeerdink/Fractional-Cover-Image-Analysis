@@ -1,4 +1,4 @@
-function varargout = gui_image_intro_batch(varargin)
+function varargout = gui_image_intro_batch2(varargin)
 % ---To Do:
 %    1.) Need to refine standard targets (brighter or darker?)
 %    2.) Revise flower algorithm so that works with adjusted images
@@ -13,21 +13,23 @@ function varargout = gui_image_intro_batch(varargin)
 %    all (just close and re-open).
 %    2.) Can only have one classify gui open at one time.
 
-% GUI_IMAGE_INTRO_BATCH Application M-file for gui_image_intro_batch.fig
-%   GUI_IMAGE_INTRO_BATCH, by itself, creates a new GUI_IMAGE_INTRO_BATCH or raises the existing
+% MEMORY ISSUE
+
+% GUI_IMAGE_INTRO_BATCH2 Application M-file for gui_image_intro_batch2.fig
+%   GUI_IMAGE_INTRO_BATCH2, by itself, creates a new GUI_IMAGE_INTRO_BATCH2 or raises the existing
 %   singleton*.
 %
-%   H = GUI_IMAGE_INTRO_BATCH returns the handle to a new GUI_IMAGE_INTRO_BATCH or the handle to
+%   H = GUI_IMAGE_INTRO_BATCH2 returns the handle to a new GUI_IMAGE_INTRO_BATCH2 or the handle to
 %   the existing singleton*.
 %
-%   GUI_IMAGE_INTRO_BATCH('CALLBACK',hObject,eventData,handles,...) calls the local
-%   function named CALLBACK in GUI_IMAGE_INTRO_BATCH.M with the given input arguments.
+%   GUI_IMAGE_INTRO_BATCH2('CALLBACK',hObject,eventData,handles,...) calls the local
+%   function named CALLBACK in GUI_IMAGE_INTRO_BATCH2.M with the given input arguments.
 %
-%   GUI_IMAGE_INTRO_BATCH('Property','Value',...) creates a new GUI_IMAGE_INTRO_BATCH or raises the
+%   GUI_IMAGE_INTRO_BATCH2('Property','Value',...) creates a new GUI_IMAGE_INTRO_BATCH2 or raises the
 %   existing singleton*.  Starting from the left, property value pairs are
 %   applied to the GUI before gui_image_intro_batch_OpeningFunction gets called.  An
 %   unrecognized property name or invalid value makes property application
-%   stop.  All inputs are passed to gui_image_intro_batch_OpeningFcn via varargin.
+%   stop.  All inputs are passed to gui_image_intro_batch2_OpeningFcn via varargin.
 %
 %   *See GUI Options - GUI allows only one instance to run (singleton).
 %
@@ -35,16 +37,16 @@ function varargout = gui_image_intro_batch(varargin)
 
 % Copyright 2000-2002 The MathWorks, Inc.
 
-% Edit the above text to modify the response to help gui_image_intro_batch
+% Edit the above text to modify the response to help gui_image_intro_batch2
 
-% Last Modified by GUIDE v2.5 12-May-2008 14:40:58
+% Last Modified by GUIDE v2.5 04-May-2011 12:48:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',          mfilename, ...
                    'gui_Singleton',     gui_Singleton, ...
-                   'gui_OpeningFcn',    @gui_image_intro_batch_OpeningFcn, ...
-                   'gui_OutputFcn',     @gui_image_intro_batch_OutputFcn, ...
+                   'gui_OpeningFcn',    @gui_image_intro_batch2_OpeningFcn, ...
+                   'gui_OutputFcn',     @gui_image_intro_batch2_OutputFcn, ...
                    'gui_LayoutFcn',     [], ...
                    'gui_Callback',      []);
 if nargin & isstr(varargin{1})
@@ -59,15 +61,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before gui_image_intro_batch is made visible.
-function gui_image_intro_batch_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_image_intro_batch2 is made visible.
+function gui_image_intro_batch2_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to gui_image_intro_batch (see VARARGIN)
+% varargin   command line arguments to gui_image_intro_batch2 (see VARARGIN)
 
-% Choose default command line output for gui_image_intro_batch
+% Choose default command line output for gui_image_intro_batch2
 handles.output = hObject;
 
 % Update handles structure
@@ -77,12 +79,12 @@ guidata(hObject, handles);
 update_listbox(handles)
 set(handles.listbox1,'Value',[])
 
-% UIWAIT makes gui_image_intro_batch wait for user response (see UIRESUME)
+% UIWAIT makes gui_image_intro_batch2 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_image_intro_batch_OutputFcn(hObject, eventdata, handles)
+function varargout = gui_image_intro_batch2_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -178,6 +180,15 @@ assignin('base',[Ifname,'_crop_rect'],rect);
 dirgui=evalin('base','dirstruct')
 eval(['dirgui.',Ifname,'{4}=rect']);
 assignin('base','dirstruct',dirgui)
+%SAVE CROPPED FILE TO CROP FOLDER
+    root_name=strtok(Ifname,'_');
+    flder=evalin('base',['dirstruct.',root_name,'{1}'])
+    cflder=[flder,'crop'];
+    if isdir(cflder)==0 
+    mkdir(cflder)
+    end
+    fname=[flder,'crop\',Ifname,'_crop.jpg']
+    imwrite(Icrop,fname) 
 %Update Listbox with new variables
 update_listbox(handles)
 
@@ -245,17 +256,24 @@ function varargout = classify_button_Callback(h, eventdata, handles, varargin)
 % hObject    handle to semilogy_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+clear all
 load tree
 fnames=evalin('base','fieldnames(dirstruct)');
+evalin('base','clear DSCN*'); %*** CLEARS OUT ALL IMAGES IN WORKSPACE
 q=2;
 for f=1:length(fnames)
-    clear RowS RowAll all_rgb ratioGR sumRGB x 
-    evalin('base',['exist ',fnames{f},'_crop;'])
+    clear RowS RowAll all_rgb ratioGR sumRGB x treeOut_x_0 yout R G B
+    %READ IMAGE FNAME
+    fn=fnames{f};
+    folder=evalin('base',['dirstruct.',fn,'{1}']);
+    filename=[folder,fn,'.jpg'];
+    evalin('base',[fn,'=imread(''',filename,''');']);
+    evalin('base',['exist ',fnames{f}])
     chk=evalin('base','ans');
     if chk==1
     clear chk
-    I=evalin('base',[fnames{f},'_crop;']);
-    Ifname=[fnames{f},'_crop'];
+    I=evalin('base',[fnames{f}]);
+    Ifname=[fnames{f}];
     %Apply Tree
     for j=1:3
     RowS=I(:,:,j);
@@ -263,6 +281,11 @@ for f=1:length(fnames)
     end
     ratioGR=all_rgb(:,2)./all_rgb(:,1);
     sumRGB=sum(all_rgb,2);
+    %Troubleshooting
+    %     assignin('base','all_rgb',all_rgb)
+    %     assignin('base','ratioGR',ratioGR)
+    %     assignin('base','sumRGB',sumRGB)
+    
     x=[all_rgb,ratioGR,sumRGB];
     treeOut_x_0=treeval(t0,x);
     R=all_rgb(:,1);
@@ -303,7 +326,7 @@ for f=1:length(fnames)
     title([Ifname,' Original'],'Interpreter','none')
     set(gcf,'Position',[1 1 810 500])
     %Save Image to File
-    root_name=strtok(Ifname,'_');
+    root_name=Ifname;
     flder=evalin('base',['dirstruct.',root_name,'{1}'])
     cflder=[flder,'class'];
     if isdir(cflder)==0 
@@ -322,6 +345,8 @@ for f=1:length(fnames)
     else
         disp([fnames{f},'_crop does not exist'])
     end
+    close all
+    evalin('base','clear DSCN*'); %*** CLEARS OUT ALL IMAGES IN WORKSPACE
 end
 assignin('base','pfi',pfiles)
 pfiles(1)={'Done processing the cropped files:'};
@@ -372,11 +397,11 @@ function create_csv_Callback(hObject, eventdata, handles)
 dirgui=evalin('base','dirstruct');
 fn=fieldnames(dirgui);
 fid=fopen([path,char(fileout)],'w');
-fprintf(fid,'Filepath,File,Date,Site,Crop_xmin,Crop_ymin,Crop_width,Crop_height,NPV,Shade,GV,Flower Blue, Flower Yellow, Class Img. Name, Link \n');
+fprintf(fid,'Filepath,File,Date,NPV,Shade,GV,Flower Blue, Flower Yellow, Class Img. Name, Link \n');
 for i = 1:length(fn)
     out=eval(['dirgui.',fn{i}]);
-    fprintf(fid,'%s,%s,%s,%s,',char(out{1}),char(fn{i}),char(out{2}),char(out{3}));
-    fprintf(fid,'%f,%f,%f,%f,',out{4}); %Crop Rect. Values (4 vals, cell 4)
+    fprintf(fid,'%s,%s,%s,%s,',char(out{1}),char(fn{i}),char(out{2}));
+    %fprintf(fid,'%f,%f,%f,%f,',out{4}); %Crop Rect. Values (4 vals, cell 4)
     fprintf(fid,'%f ,%f,%f,%f,%f,',out{5}); %Classif. Values (5 vals, cell 5)
     fprintf(fid,'%s,',char(out{6})); %Filename for Output Figure
     fprintf(fid,'%s, \n',['=hyperlink("',char(out{6}),'")']); %Filename for Output Figure
