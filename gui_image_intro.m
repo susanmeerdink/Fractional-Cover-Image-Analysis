@@ -1,4 +1,4 @@
-function varargout = gui_image_intro(varargin)
+function varargout = gui_image_intro_batch(varargin)
 % ---To Do:
 %    1.) Need to refine standard targets (brighter or darker?)
 %    2.) Revise flower algorithm so that works with adjusted images
@@ -13,21 +13,21 @@ function varargout = gui_image_intro(varargin)
 %    all (just close and re-open).
 %    2.) Can only have one classify gui open at one time.
 
-% GUI_IMAGE_INTRO Application M-file for gui_image_intro.fig
-%   GUI_IMAGE_INTRO, by itself, creates a new GUI_IMAGE_INTRO or raises the existing
+% GUI_IMAGE_INTRO_BATCH Application M-file for gui_image_intro_batch.fig
+%   GUI_IMAGE_INTRO_BATCH, by itself, creates a new GUI_IMAGE_INTRO_BATCH or raises the existing
 %   singleton*.
 %
-%   H = GUI_IMAGE_INTRO returns the handle to a new GUI_IMAGE_INTRO or the handle to
+%   H = GUI_IMAGE_INTRO_BATCH returns the handle to a new GUI_IMAGE_INTRO_BATCH or the handle to
 %   the existing singleton*.
 %
-%   GUI_IMAGE_INTRO('CALLBACK',hObject,eventData,handles,...) calls the local
-%   function named CALLBACK in GUI_IMAGE_INTRO.M with the given input arguments.
+%   GUI_IMAGE_INTRO_BATCH('CALLBACK',hObject,eventData,handles,...) calls the local
+%   function named CALLBACK in GUI_IMAGE_INTRO_BATCH.M with the given input arguments.
 %
-%   GUI_IMAGE_INTRO('Property','Value',...) creates a new GUI_IMAGE_INTRO or raises the
+%   GUI_IMAGE_INTRO_BATCH('Property','Value',...) creates a new GUI_IMAGE_INTRO_BATCH or raises the
 %   existing singleton*.  Starting from the left, property value pairs are
-%   applied to the GUI before gui_image_intro_OpeningFunction gets called.  An
+%   applied to the GUI before gui_image_intro_batch_OpeningFunction gets called.  An
 %   unrecognized property name or invalid value makes property application
-%   stop.  All inputs are passed to gui_image_intro_OpeningFcn via varargin.
+%   stop.  All inputs are passed to gui_image_intro_batch_OpeningFcn via varargin.
 %
 %   *See GUI Options - GUI allows only one instance to run (singleton).
 %
@@ -35,16 +35,16 @@ function varargout = gui_image_intro(varargin)
 
 % Copyright 2000-2002 The MathWorks, Inc.
 
-% Edit the above text to modify the response to help gui_image_intro
+% Edit the above text to modify the response to help gui_image_intro_batch
 
-% Last Modified by GUIDE v2.5 22-Apr-2008 22:15:01
+% Last Modified by GUIDE v2.5 12-May-2008 14:40:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',          mfilename, ...
                    'gui_Singleton',     gui_Singleton, ...
-                   'gui_OpeningFcn',    @gui_image_intro_OpeningFcn, ...
-                   'gui_OutputFcn',     @gui_image_intro_OutputFcn, ...
+                   'gui_OpeningFcn',    @gui_image_intro_batch_OpeningFcn, ...
+                   'gui_OutputFcn',     @gui_image_intro_batch_OutputFcn, ...
                    'gui_LayoutFcn',     [], ...
                    'gui_Callback',      []);
 if nargin & isstr(varargin{1})
@@ -59,15 +59,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before gui_image_intro is made visible.
-function gui_image_intro_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_image_intro_batch is made visible.
+function gui_image_intro_batch_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to gui_image_intro (see VARARGIN)
+% varargin   command line arguments to gui_image_intro_batch (see VARARGIN)
 
-% Choose default command line output for gui_image_intro
+% Choose default command line output for gui_image_intro_batch
 handles.output = hObject;
 
 % Update handles structure
@@ -77,12 +77,12 @@ guidata(hObject, handles);
 update_listbox(handles)
 set(handles.listbox1,'Value',[])
 
-% UIWAIT makes gui_image_intro wait for user response (see UIRESUME)
+% UIWAIT makes gui_image_intro_batch wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_image_intro_OutputFcn(hObject, eventdata, handles)
+function varargout = gui_image_intro_batch_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -96,7 +96,6 @@ function varargout = update_button_Callback(h, eventdata, handles, varargin)
 % hObject    handle to update_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 update_listbox(handles)
 
 function update_listbox(handles)
@@ -110,6 +109,7 @@ function update_listbox(handles)
 % Updates the listbox to match the current workspace
 vars = evalin('base','who');
 set(handles.listbox1,'String',vars)
+set(handles.listbox1,'Value',[]) %this was added to address the bug.
 
 function [var1] = get_var_names(handles)
 % Returns the names of the two variables to plot
@@ -117,97 +117,46 @@ list_entries = get(handles.listbox1,'String');
 index_selected = get(handles.listbox1,'Value');
 var1 = list_entries{index_selected(1)};
 
-%************************** STANDARDIZE *********************************
-function varargout = standardize_Callback(h, eventdata, handles, varargin)
-% hObject    handle to standardize (see GCBO)
+
+%************************** LOAD FILES *********************************
+% --- Executes on button press in loadfile.
+function loadfile_Callback(hObject, eventdata, handles)
+% hObject    handle to loadfile (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-%Load Original Image
-figure
-Ifname= get_var_names(handles);
-I=evalin('base',Ifname);
-imshow(I)
-title({[Ifname,': Select 6 targets from Standards block (going from '...
-    'Black to White, click once on each square for a total of 6 targets, '...
-    'hit Enter when done)']})
-%Six pixels selected (black to white, 6 pts, one for each block
-n=impixel;
-assignin('base',[Ifname,'_n'],n);
-title(Ifname)
-%Std colors to scale to *** Change this when have final standards to use**
-%Standards from DSCN9492 (COP, 5April08)
-%stdcolors=[123 122 136;156 142 165;175 170 190;194 185 204;234 228 242;255 255 255]
-%Standards from DSCN9440,9441,9442,9445
-if get(handles.cloudy_radio,'Value')==1
-    %cloudy
-stdcolors=[130 126 152;146 142 167;159 155 180;171 167 192;211 207 232;242 241 246];
+evalin('base','load tree')
+[fnames,folder]=uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on')
+if ischar(fnames)
+    fnames={fnames};
+end
+evalin('base','exist dirstruct');
+chk=evalin('base','ans');
+if chk==0
+dirgui={};
 else
-    %clear
-stdcolors=[106 104 115;143 141 155;167 165 179;185 175 192;218 216 230;251 251 251];
+dirgui=evalin('base','dirstruct')
 end
-
-
-stdcolors
-
-%Regress to find beta coefficients for scaling
-figure
-set(gcf,'Position',[1,1,700,200])
-colortext={'Red','Green','Blue'};
-ctxt={'r.','g.','b.'};
-for i=1:3
-    %regression
-    [stats]=regstats(stdcolors(:,i),n(:,i)); %regstats(y,x,..), plot(x,y)
-    beta{i}=[stats.beta;stats.rsquare];
-    Iadj(:,:,i)=I(:,:,i)*beta{i}(2)+beta{i}(1);
-    %plot to show regression
-    subplot(1,3,i)
-    plot(n(:,i),stdcolors(:,i),ctxt{i})
-    ylabel('Ref std')
-    xlabel('Img std')
-    title([Ifname,' ',colortext{i}])
-    h=refline(beta{i}(2),beta{i}(1))
-    set(h,'Color','k')
-    axis([0 256 0 256])
-    text(50,180,{['intercept=',num2str(beta{i}(1),3)],...
-        ['slope=',num2str(beta{i}(2),3)],...
-        ['r2=',num2str(beta{i}(3),3)]})
+clear chk
+evalin('base','clear ans')
+for i=1:length(fnames)
+        varname=fnames(i);
+        varname=char(strtok(varname,'.'));
+        assignin('base',varname,importdata([folder,'\',char(fnames(i))]));
+        finfo=imfinfo([folder,'\',char(fnames(i))]);
+        len=length(folder);
+        sta=folder(len-4:len-1);
+        eval(['dirgui.',varname,'=cell(1,6)']);
+        %eval(['dirgui.',varname,'={folder,finfo.FileModDate,sta}']);
+        eval(['dirgui.',varname,'{1}=folder'])
+        eval(['dirgui.',varname,'{2}=finfo.FileModDate']);
+        eval(['dirgui.',varname,'{3}=sta']);
 end
-%Show Adjusted Image
-figure
-imshow(Iadj)
-title([Ifname,'_adj'],'Interpreter','none')
-%Write Output
-assignin('base',[Ifname,'_adj'],Iadj);
-assignin('base',[Ifname,'_beta'],beta);
+clear i
+clear varname
+assignin('base','dirstruct',dirgui)
 %Update Listbox with new variables
 update_listbox(handles)
 
-%************************** AUTO CROP *********************************
-% --- Executes on button press in autocrop_button.
-function autocrop_button_Callback(hObject, eventdata, handles)
-% hObject    handle to autocrop_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-%SET CROP RECTANGLE
-%rect=[xmin ymin width height]
-%rect=[500,170,1500,1560];
-
-%GET Image and Image Name
-Ifname= get_var_names(handles);
-I=evalin('base',Ifname);
-rect=evalin('base',[Ifname,'_adj_crop_rect']);
-%Create Cropped Image and Display
-crop_Ifname=[Ifname,'_crop'];
-Icrop=imcrop(I,rect);
-%Write to Base
-assignin('base',[crop_Ifname],Icrop);
-figure
-imshow(Icrop)
-title([crop_Ifname],'Interpreter','none')
-%Update Listbox with new variables
-update_listbox(handles)
 %************************** CROP *********************************
 function varargout = crop_Callback(h, eventdata, handles, varargin)
 % hObject    handle to crop (see GCBO)
@@ -226,22 +175,157 @@ imshow(Icrop);
 title([Ifname,'_crop',],'Interpreter','none')
 assignin('base',[Ifname,'_crop'],Icrop);
 assignin('base',[Ifname,'_crop_rect'],rect);
+dirgui=evalin('base','dirstruct')
+eval(['dirgui.',Ifname,'{4}=rect']);
+assignin('base','dirstruct',dirgui)
 %Update Listbox with new variables
 update_listbox(handles)
 
-%************************** CLASSIFY *********************************
+%************************** CLASSIFY SINGLE *********************************
+% --- Executes on button press in classify_single_button.
+function classify_single_button_Callback(hObject, eventdata, handles)
+% hObject    handle to classify_single_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+load tree
+Ifname= get_var_names(handles);
+I=evalin('base',Ifname);
+
+%Apply Tree
+f=1;
+    for j=1:3
+    RowS=I(:,:,j);
+    all_rgb(:,j)=double(RowS(:));
+    end
+    ratioGR=all_rgb(:,2)./all_rgb(:,1);
+    sumRGB=sum(all_rgb,2);
+    x=[all_rgb,ratioGR,sumRGB];
+    treeOut_x_0=treeval(t0,x);
+    R=all_rgb(:,1);
+    G=all_rgb(:,2);
+    B=all_rgb(:,3);
+    treeOut_x_0(B>G+40 & R>160)=4; %Blue Flowers
+    treeOut_x_0(R./B>1.8 & G./B>1.8 & R+G>400)=5; %YELLOW FLOWERS
+    hx(f,:)=hist(treeOut_x_0,1:5)/length(sumRGB); 
+%Create Figure    
+szImg=size(RowS);
+m=szImg(1);
+n=szImg(2);
+yout=reshape(treeOut_x_0,m,n);
+assignin('base','yout',yout)
+figure
+assignin('base','cfig',gcf)
+subplot(1,2,1)
+imagesc(yout)
+axis image
+cmap=[1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
+set(gca,'CLim',[1 5])
+colormap(cmap)
+ytlabel={['NPV ',num2str(100*hx(f,1),2),'%'],...
+    ['Shade ',num2str(100*hx(f,2),2),'%'],...
+    ['GV ',num2str(100*hx(f,3),2),'%'],...
+    ['Flr: Blu ',num2str(100*hx(f,4),2),'%'],...
+    ['Flr: Yel ',num2str(100*hx(f,5),2),'%']};
+colorbar('peer',gca,[0.01195 0.7954 0.03765 0.18],...
+  'Box','on',...
+  'CLim',[1 5],'YLim',[1.25,4.75],...
+  'YTick',[1.5 2.25 3 3.75 4.5],...
+  'YTickLabel',ytlabel,...
+  'Location','manual','FontWeight','Bold');
+title([Ifname,' Classification (Tree1)'],'Interpreter','none')
+subplot(1,2,2)
+imagesc(I)
+axis image
+title([Ifname,' Original'],'Interpreter','none')
+set(gcf,'Position',[1 1 810 500])
+
+%************************** CLASSIFY BATCH******************************
 function varargout = classify_button_Callback(h, eventdata, handles, varargin)
 % hObject    handle to semilogy_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-Ifname= get_var_names(handles);
-I=evalin('base',Ifname);
-assignin('base',['I'],I);
-assignin('base',['Ifname'],Ifname);
-%Utilizes gui_image_classify**
-eval('gui_image_classify')
-
-
+load tree
+fnames=evalin('base','fieldnames(dirstruct)');
+q=2;
+for f=1:length(fnames)
+    clear RowS RowAll all_rgb ratioGR sumRGB x 
+    evalin('base',['exist ',fnames{f},'_crop;'])
+    chk=evalin('base','ans');
+    if chk==1
+    clear chk
+    I=evalin('base',[fnames{f},'_crop;']);
+    Ifname=[fnames{f},'_crop'];
+    %Apply Tree
+    for j=1:3
+    RowS=I(:,:,j);
+    all_rgb(:,j)=double(RowS(:));
+    end
+    ratioGR=all_rgb(:,2)./all_rgb(:,1);
+    sumRGB=sum(all_rgb,2);
+    x=[all_rgb,ratioGR,sumRGB];
+    treeOut_x_0=treeval(t0,x);
+    R=all_rgb(:,1);
+    G=all_rgb(:,2);
+    B=all_rgb(:,3);
+    treeOut_x_0(B>G+40 & R>160)=4; %Blue Flowers
+    treeOut_x_0(R./B>1.8 & G./B>1.8 & R+G>400)=5; %YELLOW FLOWERS
+    hx(f,:)=hist(treeOut_x_0,1:5)/length(sumRGB); 
+    %Create Figure    
+    szImg=size(RowS);
+    m=szImg(1);
+    n=szImg(2);
+    yout=reshape(treeOut_x_0,m,n);
+    assignin('base','yout',yout)
+    figure
+    assignin('base','cfig',gcf)
+    subplot(1,2,1)
+    imagesc(yout)
+    axis image
+    cmap=[1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
+    set(gca,'CLim',[1 5])
+    colormap(cmap)
+    ytlabel={['NPV ',num2str(100*hx(f,1),2),'%'],...
+    ['Shade ',num2str(100*hx(f,2),2),'%'],...
+    ['GV ',num2str(100*hx(f,3),2),'%'],...
+    ['Flr: Blu ',num2str(100*hx(f,4),2),'%'],...
+    ['Flr: Yel ',num2str(100*hx(f,5),2),'%']};
+    colorbar('peer',gca,[0.01195 0.7954 0.03765 0.18],...
+    'Box','on',...
+    'CLim',[1 5],'YLim',[1.25,4.75],...
+    'YTick',[1.5 2.25 3 3.75 4.5],...
+    'YTickLabel',ytlabel,...
+    'Location','manual','FontWeight','Bold');
+    title([Ifname,' Classification (Tree1)'],'Interpreter','none')
+    subplot(1,2,2)
+    imagesc(I)
+    axis image
+    title([Ifname,' Original'],'Interpreter','none')
+    set(gcf,'Position',[1 1 810 500])
+    %Save Image to File
+    root_name=strtok(Ifname,'_');
+    flder=evalin('base',['dirstruct.',root_name,'{1}'])
+    cflder=[flder,'class'];
+    if isdir(cflder)==0 
+    mkdir(cflder)
+    end
+    fname=[flder,'class\',Ifname,'_class.jpg']
+    evalin('base',['saveas(cfig,''',fname,''')'])
+    %Save Data to dirstruct 
+    dirgui=evalin('base','dirstruct')
+    eval(['dirgui.',root_name,'{5}=hx(f,:);']);
+    eval(['dirgui.',root_name,'{6}=fname;']);
+    assignin('base','dirstruct',dirgui);
+    pfiles(q)={Ifname}
+    q=q+1;
+    %If No File 
+    else
+        disp([fnames{f},'_crop does not exist'])
+    end
+end
+assignin('base','pfi',pfiles)
+pfiles(1)={'Done processing the cropped files:'};
+msgbox(pfiles)
 
 % --- Executes during object creation, after setting all properties.
 function listbox1_CreateFcn(hObject, eventdata, handles)
@@ -284,93 +368,23 @@ function create_csv_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 [fileout,path] = uiputfile(['ccd_stats_',datestr(now,'ddmmmyy'),'.csv'],'Save file name')
-out=evalin('base','out');
-fn=fieldnames(out);
+
+dirgui=evalin('base','dirstruct');
+fn=fieldnames(dirgui);
 fid=fopen([path,char(fileout)],'w');
-fprintf(fid,'Filename,Original File,Meta Text,NPV,Shade,GV,Flower Blue, Flower Yellow, Sum Threshold,G/R Ratio\n');
+fprintf(fid,'Filepath,File,Date,Site,Crop_xmin,Crop_ymin,Crop_width,Crop_height,NPV,Shade,GV,Flower Blue, Flower Yellow, Class Img. Name, Link \n');
 for i = 1:length(fn)
-    fprintf(fid,'%s,%s,',char(fn{i}),strtok(fn{i},'_'));
-    stats=evalin('base',['out.',fn{i}]);
-    fprintf(fid,'%s,',char(stats{2}));
-    fprintf(fid,'%f ,%f,%f,%f,%f,%f,%f \n',stats{1});
+    out=eval(['dirgui.',fn{i}]);
+    fprintf(fid,'%s,%s,%s,%s,',char(out{1}),char(fn{i}),char(out{2}),char(out{3}));
+    fprintf(fid,'%f,%f,%f,%f,',out{4}); %Crop Rect. Values (4 vals, cell 4)
+    fprintf(fid,'%f ,%f,%f,%f,%f,',out{5}); %Classif. Values (5 vals, cell 5)
+    fprintf(fid,'%s,',char(out{6})); %Filename for Output Figure
+    fprintf(fid,'%s, \n',['=hyperlink("',char(out{6}),'")']); %Filename for Output Figure
 end
-fclose(fid)
+fclose(fid);
+disp('done!')
 
 
-% --- Executes on button press in load_all.
-function load_all_Callback(hObject, eventdata, handles)
-% hObject    handle to load_all (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-folder=uigetdir;
-fnames=dir([folder,'\*.JPG']);
-
-
-evalin('base','exist dirstruct');
-chk=evalin('base','ans');
-if chk==0
-dirgui={}
-else
-dirgui=evalin('base','dirstruct')
-end
-clear chk
-
-if isempty(fnames)
-    errordlg('No JPG files in folder')
-else
-    for i=1:length(fnames)
-        varname=fnames(i).name;
-        varname=strtok(varname,'.')
-        assignin('base',varname,importdata([folder,'\',fnames(i).name]))
-        eval(['dirgui.',varname,'=folder']);
-    end
-end
-clear i
-clear varname
-assignin('base','dirstruct',dirgui)
-%Update Listbox with new variables
-vars = evalin('base','who');
-set(handles.listbox1,'String',vars)
-
-% --- Executes during object creation, after setting all properties.
-function load_all_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to load_all (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-
-% --- Executes on button press in loadfile.
-function loadfile_Callback(hObject, eventdata, handles)
-% hObject    handle to loadfile (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-[fnames,folder]=uigetfile('*.JPG','Select Files to Load','MultiSelect','on')
-if ischar(fnames)
-    fnames={fnames};
-end
-
-evalin('base','exist dirstruct')
-chk=evalin('base','ans')
-if chk==0
-dirgui={}
-else
-dirgui=evalin('base','dirstruct')
-end
-clear chk
-
-for i=1:length(fnames)
-        varname=fnames(i);
-        varname=char(strtok(varname,'.'));
-        assignin('base',varname,importdata([folder,'\',char(fnames(i))]));
-        eval(['dirgui.',varname,'=folder']);
-end
-clear i
-clear varname
-assignin('base','dirstruct',dirgui)
-%Update Listbox with new variables
-update_listbox(handles)
 
 % --- Executes on button press in imtool_button.
 function imtool_button_Callback(hObject, eventdata, handles)
@@ -416,22 +430,7 @@ assignin('base','Ifname',Ifname)
 
 
 
-% --- Executes on button press in clear_radio.
-function clear_radio_Callback(hObject, eventdata, handles)
-% hObject    handle to clear_radio (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of clear_radio
-
-
-% --- Executes on button press in cloudy_radio.
-function cloudy_radio_Callback(hObject, eventdata, handles)
-% hObject    handle to cloudy_radio (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of cloudy_radio
 
 
 
@@ -470,5 +469,26 @@ function radiobutton7_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to radiobutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+
+
+% --- Executes on button press in pushbutton12.
+function pushbutton12_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+load tree
+treedisp(t0,'name',{'r','g','b','g/r','sumRGB'});
+
+% --- Executes on button press in clear_imgs.
+function clear_imgs_Callback(hObject, eventdata, handles)
+% hObject    handle to clear_imgs (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+evalin('base','clear DSC*')
+
+
 
 
