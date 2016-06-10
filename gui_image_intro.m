@@ -1,4 +1,4 @@
-function varargout = gui_image_intro_batch2(varargin)
+function varargout = gui_image_intro(varargin)
 % ---To Do:
 %    1.) Need to refine standard targets (brighter or darker?)
 %    2.) Revise flower algorithm so that works with adjusted images
@@ -15,21 +15,21 @@ function varargout = gui_image_intro_batch2(varargin)
 
 % MEMORY ISSUE
 
-% GUI_IMAGE_INTRO_BATCH2 Application M-file for gui_image_intro_batch2.fig
-%   GUI_IMAGE_INTRO_BATCH2, by itself, creates a new GUI_IMAGE_INTRO_BATCH2 or raises the existing
+% GUI_IMAGE_INTRO Application M-file for gui_image_intro.fig
+%   GUI_IMAGE_INTRO, by itself, creates a new GUI_IMAGE_INTRO or raises the existing
 %   singleton*.
 %
-%   H = GUI_IMAGE_INTRO_BATCH2 returns the handle to a new GUI_IMAGE_INTRO_BATCH2 or the handle to
+%   H = GUI_IMAGE_INTRO returns the handle to a new GUI_IMAGE_INTRO or the handle to
 %   the existing singleton*.
 %
-%   GUI_IMAGE_INTRO_BATCH2('CALLBACK',hObject,eventData,handles,...) calls the local
-%   function named CALLBACK in GUI_IMAGE_INTRO_BATCH2.M with the given input arguments.
+%   GUI_IMAGE_INTRO('CALLBACK',hObject,eventData,handles,...) calls the local
+%   function named CALLBACK in GUI_IMAGE_INTRO.M with the given input arguments.
 %
-%   GUI_IMAGE_INTRO_BATCH2('Property','Value',...) creates a new GUI_IMAGE_INTRO_BATCH2 or raises the
+%   GUI_IMAGE_INTRO('Property','Value',...) creates a new GUI_IMAGE_INTRO or raises the
 %   existing singleton*.  Starting from the left, property value pairs are
 %   applied to the GUI before gui_image_intro_batch_OpeningFunction gets called.  An
 %   unrecognized property name or invalid value makes property application
-%   stop.  All inputs are passed to gui_image_intro_batch2_OpeningFcn via varargin.
+%   stop.  All inputs are passed to gui_image_intro_OpeningFcn via varargin.
 %
 %   *See GUI Options - GUI allows only one instance to run (singleton).
 %
@@ -37,7 +37,7 @@ function varargout = gui_image_intro_batch2(varargin)
 
 % Copyright 2000-2002 The MathWorks, Inc.
 
-% Edit the above text to modify the response to help gui_image_intro_batch2
+% Edit the above text to modify the response to help gui_image_intro
 
 % Last Modified by GUIDE v2.5 04-May-2011 12:48:48
 
@@ -45,8 +45,8 @@ function varargout = gui_image_intro_batch2(varargin)
 gui_Singleton = 1;
 gui_State = struct('gui_Name',          mfilename, ...
                    'gui_Singleton',     gui_Singleton, ...
-                   'gui_OpeningFcn',    @gui_image_intro_batch2_OpeningFcn, ...
-                   'gui_OutputFcn',     @gui_image_intro_batch2_OutputFcn, ...
+                   'gui_OpeningFcn',    @gui_image_intro_OpeningFcn, ...
+                   'gui_OutputFcn',     @gui_image_intro_OutputFcn, ...
                    'gui_LayoutFcn',     [], ...
                    'gui_Callback',      []);
 if nargin & isstr(varargin{1})
@@ -61,15 +61,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before gui_image_intro_batch2 is made visible.
-function gui_image_intro_batch2_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before gui_image_intro is made visible.
+function gui_image_intro_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to gui_image_intro_batch2 (see VARARGIN)
+% varargin   command line arguments to gui_image_intro (see VARARGIN)
 
-% Choose default command line output for gui_image_intro_batch2
+% Choose default command line output for gui_image_intro
 handles.output = hObject;
 
 % Update handles structure
@@ -79,12 +79,12 @@ guidata(hObject, handles);
 update_listbox(handles)
 set(handles.listbox1,'Value',[])
 
-% UIWAIT makes gui_image_intro_batch2 wait for user response (see UIRESUME)
+% UIWAIT makes gui_image_intro wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = gui_image_intro_batch2_OutputFcn(hObject, eventdata, handles)
+function varargout = gui_image_intro_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
