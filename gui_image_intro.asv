@@ -326,19 +326,19 @@ for f=1:length(fnames)
     set(gcf,'Position',[1 1 810 500])
     %Save Image to File
     root_name=Ifname;
-    flder=evalin('base',['dirstruct.',root_name,'{1}']);
+    flder=evalin('base',['dirstruct.',root_name,'{1}'])
     cflder=[flder,'class'];
     if isdir(cflder)==0 
     mkdir(cflder)
     end
-    fname=[flder,'class\',Ifname,'_class.jpg'];
+    fname=[flder,'class\',Ifname,'_class.jpg']
     evalin('base',['saveas(cfig,''',fname,''')'])
     %Save Data to dirstruct 
-    dirgui=evalin('base','dirstruct');
+    dirgui=evalin('base','dirstruct')
     eval(['dirgui.',root_name,'{5}=hx(f,:);']);
     eval(['dirgui.',root_name,'{6}=fname;']);
     assignin('base','dirstruct',dirgui);
-    pfiles(q)={Ifname};
+    pfiles(q)={Ifname}
     q=q+1;
     %If No File 
     else
@@ -391,7 +391,7 @@ function create_csv_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[fileout,path] = uiputfile(['ccd_stats_',datestr(now,'ddmmmyy'),'.csv'],'Save file name');
+[fileout,path] = uiputfile(['ccd_stats_',datestr(now,'ddmmmyy'),'.csv'],'Save file name')
 
 dirgui=evalin('base','dirstruct');
 fn=fieldnames(dirgui);
@@ -436,7 +436,7 @@ function save_work_Callback(hObject, eventdata, handles)
 % hObject    handle to save_work (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fileout,path] = uiputfile(['ccd_wkspace_',datestr(now,'ddmmmyy'),'.mat'],'Save file name');
+[fileout,path] = uiputfile(['ccd_wkspace_',datestr(now,'ddmmmyy'),'.mat'],'Save file name')
 
 
 
