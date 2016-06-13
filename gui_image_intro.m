@@ -109,7 +109,13 @@ function update_listbox(handles)
 
 % Updates the listbox to match the current workspace
 vars = evalin('base','who');
-set(handles.listbox1,'String',vars)
+varsIn = {};
+for i = 1:length(vars) %Only show photos in listbox
+    if strfind(vars{i},'DSCN') > 0
+        varsIn = [varsIn vars{i}];
+    end    
+end
+set(handles.listbox1,'String',varsIn)
 set(handles.listbox1,'Value',[]) %this was added to address the bug.
 
 function [var1] = get_var_names(handles)
@@ -128,33 +134,36 @@ function loadfile_Callback(hObject, eventdata, handles)
 evalin('base','load tree')
 [fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on');
 if ischar(fnames)
-    fnames={fnames};
+    fnames = {fnames};
 end
 evalin('base','exist dirstruct');
-chk=evalin('base','ans');
-if chk==0
-dirgui={};
+chk = evalin('base','ans');
+if chk == 0
+    dirgui={};
 else
-dirgui=evalin('base','dirstruct');
+    dirgui=evalin('base','dirstruct');
 end
 clear chk
 evalin('base','clear ans')
-for i=1:length(fnames)
+
+if size(fnames,2) > 0 %If files have been selected 
+    for i = 1:length(fnames) %Loop through files       
         varname=fnames(i);
         varname=char(strtok(varname,'.'));
         assignin('base',varname,importdata([folder,'\',char(fnames(i))]));
-        finfo=imfinfo([folder,'\',char(fnames(i))]);
-        len=length(folder);
-        sta=folder(len-4:len-1);
+        finfo = imfinfo([folder,'\',char(fnames(i))]);
+        len = length(folder);
+        sta = folder(len-4:len-1);
         eval(['dirgui.',varname,'=cell(1,6)']);
         %eval(['dirgui.',varname,'={folder,finfo.FileModDate,sta}']);
-        eval(['dirgui.',varname,'{1}=folder'])
+        eval(['dirgui.',varname,'{1}=folder']);
         eval(['dirgui.',varname,'{2}=finfo.FileModDate']);
         eval(['dirgui.',varname,'{3}=sta']);
+    end
 end
 clear i
 clear varname
-assignin('base','dirstruct',dirgui)
+assignin('base','dirstruct',dirgui);
 %Update Listbox with new variables
 update_listbox(handles)
 
@@ -170,24 +179,27 @@ figure
 imshow(I)
 title([Ifname,': Drag Rectangle Outline for Crop'],'Interpreter','none')
 %User drags crop outline
-[Icrop,rect] = imcrop;
-figure
-imshow(Icrop);
-title([Ifname,'_crop',],'Interpreter','none')
-assignin('base',[Ifname,'_crop'],Icrop);
-assignin('base',[Ifname,'_crop_rect'],rect);
-dirgui=evalin('base','dirstruct');
-eval(['dirgui.',Ifname,'{4}=rect']);
-assignin('base','dirstruct',dirgui)
-%SAVE CROPPED FILE TO CROP FOLDER
+[Icrop,rect] = imcrop; %Crop image
+if isempty(Icrop) == 0  %If the user selected an area to crop   
+    figure
+    imshow(Icrop); %Display Image
+    title([Ifname,'_crop',],'Interpreter','none')
+    assignin('base',[Ifname,'_crop'],Icrop); %Assign value to variable in specified workspace
+    assignin('base',[Ifname,'_crop_rect'],rect);
+    dirgui=evalin('base','dirstruct');
+    eval(['dirgui.',Ifname,'{4}=rect']);
+    assignin('base','dirstruct',dirgui)
+    
+    %SAVE CROPPED FILE TO CROP FOLDER
     root_name=strtok(Ifname,'_');
     flder=evalin('base',['dirstruct.',root_name,'{1}']);
     cflder=[flder,'crop'];
-    if isdir(cflder)==0 
-    mkdir(cflder)
+    if isdir(cflder)== 0 %If the directory doesn't exist make it
+        mkdir(cflder)
     end
-    fname=[flder,'crop\',Ifname,'_crop.jpg'];
+    fname = [flder,'crop\',Ifname,'_crop.jpg'];
     imwrite(Icrop,fname) 
+end
 %Update Listbox with new variables
 update_listbox(handles)
 
@@ -237,7 +249,7 @@ ytlabel={['NPV ',num2str(100*hx(f,1),2),'%'],...
     ['GV ',num2str(100*hx(f,3),2),'%'],...
     ['Flr: Blu ',num2str(100*hx(f,4),2),'%'],...
     ['Flr: Yel ',num2str(100*hx(f,5),2),'%']};
-colorbar('peer',gca,[0.01195 0.7954 0.03765 0.18],...
+colorbar(gca,[0.01195 0.7954 0.03765 0.18],...
   'Box','on',...
   'CLim',[1 5],'YLim',[1.25,4.75],...
   'YTick',[1.5 2.25 3 3.75 4.5],...
@@ -262,17 +274,19 @@ evalin('base','clear DSCN*'); %*** CLEARS OUT ALL IMAGES IN WORKSPACE
 q=2;
 for f=1:length(fnames)
     clear RowS RowAll all_rgb ratioGR sumRGB x treeOut_x_0 yout R G B
+    
     %READ IMAGE FNAME
-    fn=fnames{f};
-    folder=evalin('base',['dirstruct.',fn,'{1}']);
+    fn = fnames{f};
+    folder = evalin('base',['dirstruct.',fn,'{1}']);
     filename=[folder,fn,'.jpg'];
     evalin('base',[fn,'=imread(''',filename,''');']);
     evalin('base',['exist ',fnames{f}])
     chk=evalin('base','ans');
     if chk==1
     clear chk
-    I=evalin('base',[fnames{f}]);
+    I = evalin('base',[fnames{f}]);
     Ifname=[fnames{f}];
+    
     %Apply Tree
     for j=1:3
     RowS=I(:,:,j);
@@ -308,22 +322,23 @@ for f=1:length(fnames)
     set(gca,'CLim',[1 5])
     colormap(cmap)
     ytlabel={['NPV ',num2str(100*hx(f,1),2),'%'],...
-    ['Shade ',num2str(100*hx(f,2),2),'%'],...
-    ['GV ',num2str(100*hx(f,3),2),'%'],...
-    ['Flr: Blu ',num2str(100*hx(f,4),2),'%'],...
-    ['Flr: Yel ',num2str(100*hx(f,5),2),'%']};
-    colorbar('peer',gca,[0.01195 0.7954 0.03765 0.18],...
-    'Box','on',...
-    'CLim',[1 5],'YLim',[1.25,4.75],...
-    'YTick',[1.5 2.25 3 3.75 4.5],...
-    'YTickLabel',ytlabel,...
-    'Location','manual','FontWeight','Bold');
+        ['Shade ',num2str(100*hx(f,2),2),'%'],...
+        ['GV ',num2str(100*hx(f,3),2),'%'],...
+        ['Flr: Blu ',num2str(100*hx(f,4),2),'%'],...
+        ['Flr: Yel ',num2str(100*hx(f,5),2),'%']};
+    colorbar(gca,... %[0.01195 0.7954 0.03765 0.18],
+        'Box','on',...
+        'YLim',[1.25,4.75],... %'CLim',[1 5],
+        'YTick',[1.5 2.25 3 3.75 4.5],...
+        'YTickLabel',ytlabel,...
+        'Location','manual','FontWeight','Bold');
     title([Ifname,' Classification (Tree1)'],'Interpreter','none')
     subplot(1,2,2)
     imagesc(I)
     axis image
     title([Ifname,' Original'],'Interpreter','none')
     set(gcf,'Position',[1 1 810 500])
+    
     %Save Image to File
     root_name=Ifname;
     flder=evalin('base',['dirstruct.',root_name,'{1}']);
@@ -333,6 +348,7 @@ for f=1:length(fnames)
     end
     fname=[flder,'class\',Ifname,'_class.jpg'];
     evalin('base',['saveas(cfig,''',fname,''')'])
+    
     %Save Data to dirstruct 
     dirgui=evalin('base','dirstruct');
     eval(['dirgui.',root_name,'{5}=hx(f,:);']);
@@ -340,6 +356,7 @@ for f=1:length(fnames)
     assignin('base','dirstruct',dirgui);
     pfiles(q)={Ifname};
     q=q+1;
+    
     %If No File 
     else
         disp([fnames{f},'_crop does not exist'])
