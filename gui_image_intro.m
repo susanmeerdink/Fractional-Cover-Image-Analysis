@@ -269,13 +269,14 @@ function varargout = classify_button_Callback(h, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 clear all
 load tree
-fnames=evalin('base','fieldnames(dirstruct)');
+fnames = evalin('base','fieldnames(dirstruct)'); %extracts the value of the variable in the MATLAB base workspace and captures the value in the local variable
+fnames
 evalin('base','clear DSCN*'); %*** CLEARS OUT ALL IMAGES IN WORKSPACE
-q=2;
-for f=1:length(fnames)
+q = 2;
+for f = 1:length(fnames)
     clear RowS RowAll all_rgb ratioGR sumRGB x treeOut_x_0 yout R G B
-    
-    %READ IMAGE FNAME
+    if strfind(fnames{i},'_crop') > 0
+        %READ IMAGE FNAME
     fn = fnames{f};
     folder = evalin('base',['dirstruct.',fn,'{1}']);
     filename=[folder,fn,'.jpg'];
@@ -289,18 +290,19 @@ for f=1:length(fnames)
     
     %Apply Tree
     for j=1:3
-    RowS=I(:,:,j);
-    all_rgb(:,j)=double(RowS(:));
+        RowS=I(:,:,j);
+        all_rgb(:,j)=double(RowS(:));
     end
-    ratioGR=all_rgb(:,2)./all_rgb(:,1);
-    sumRGB=sum(all_rgb,2);
+    ratioGR = all_rgb(:,2)./all_rgb(:,1);
+    sumRGB = sum(all_rgb,2);
     %Troubleshooting
     %     assignin('base','all_rgb',all_rgb)
     %     assignin('base','ratioGR',ratioGR)
     %     assignin('base','sumRGB',sumRGB)
     
     x=[all_rgb,ratioGR,sumRGB];
-    treeOut_x_0=treeval(t0,x);
+    treeOut_x_0 = treeval(t0,x); %Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
+    %treeOut_x_0 = fitctree(t0,x);
     R=all_rgb(:,1);
     G=all_rgb(:,2);
     B=all_rgb(:,3);
@@ -311,14 +313,17 @@ for f=1:length(fnames)
     szImg=size(RowS);
     m=szImg(1);
     n=szImg(2);
-    yout=reshape(treeOut_x_0,m,n);
-    assignin('base','yout',yout)
+    yout = reshape(treeOut_x_0,m,n);
+
+    assignin('base','yout',yout)%Assigning Variables to Workspace
     figure
-    assignin('base','cfig',gcf)
+    assignin('base','cfig',gcf) %Assign value to variable in specified workspace
+    
+    %Display Classification Results
     subplot(1,2,1)
-    imagesc(yout)
+    imagesc(yout)%Display image with scaled colors
     axis image
-    cmap=[1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
+    cmap = [1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
     set(gca,'CLim',[1 5])
     colormap(cmap)
     ytlabel={['NPV ',num2str(100*hx(f,1),2),'%'],...
@@ -333,6 +338,7 @@ for f=1:length(fnames)
         'YTickLabel',ytlabel,...
         'Location','manual','FontWeight','Bold');
     title([Ifname,' Classification (Tree1)'],'Interpreter','none')
+    
     subplot(1,2,2)
     imagesc(I)
     axis image
@@ -340,11 +346,11 @@ for f=1:length(fnames)
     set(gcf,'Position',[1 1 810 500])
     
     %Save Image to File
-    root_name=Ifname;
-    flder=evalin('base',['dirstruct.',root_name,'{1}']);
+    root_name = Ifname;
+    flder = evalin('base',['dirstruct.',root_name,'{1}']);
     cflder=[flder,'class'];
     if isdir(cflder)==0 
-    mkdir(cflder)
+        mkdir(cflder)
     end
     fname=[flder,'class\',Ifname,'_class.jpg'];
     evalin('base',['saveas(cfig,''',fname,''')'])
@@ -363,6 +369,7 @@ for f=1:length(fnames)
     end
     close all
     evalin('base','clear DSCN*'); %*** CLEARS OUT ALL IMAGES IN WORKSPACE
+    end     
 end
 assignin('base','pfi',pfiles)
 pfiles(1)={'Done processing the cropped files:'};
