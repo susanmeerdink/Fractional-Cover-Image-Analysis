@@ -38,7 +38,7 @@ function varargout = gui_image_intro(varargin)
 
 % Edit the above text to modify the response to help gui_image_intro
 
-% Last Modified by GUIDE v2.5 04-May-2011 12:48:48
+% Last Modified by GUIDE v2.5 08-Jul-2016 11:38:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -99,6 +99,25 @@ function varargout = update_button_Callback(h, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 update_listbox(handles)
 
+function update_table(handles)
+% hObject    handle to update (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = get(hObject,'String') returns listbox1 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox1
+
+% Updates the listbox to match the current workspace
+vars = evalin('base','who');
+varsIn = {};
+for i = 1:length(vars) %Only show photos in listbox
+    if strfind(vars{i},'DSCN') > 0
+        varsIn = [varsIn vars{i}];
+    end    
+end
+set(handles.uitable1,'String',varsIn)
+set(handles.uitable1,'Value',[]) %this was added to address the bug.
+
 function update_listbox(handles)
 % hObject    handle to update (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -148,8 +167,8 @@ evalin('base','clear ans')
 
 if size(fnames,2) > 0 %If files have been selected 
     for i = 1:length(fnames) %Loop through files       
-        varname=fnames(i);
-        varname=char(strtok(varname,'.'));
+        varname = fnames(i);
+        varname = char(strtok(varname,'.'));
         assignin('base',varname,importdata([folder,'\',char(fnames(i))]));
         finfo = imfinfo([folder,'\',char(fnames(i))]);
         len = length(folder);
@@ -540,3 +559,25 @@ evalin('base','clear DSC*')
 
 
 
+
+
+% --- Executes on slider movement.
+function slider1_Callback(hObject, eventdata, handles)
+% hObject    handle to slider1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function slider1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
