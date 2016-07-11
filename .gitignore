@@ -2,6 +2,7 @@
 *.tmp
 *.pdf
 *.doc
+*.jpg
 
 # Windows image file caches
 Thumbs.db
