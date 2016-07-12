@@ -22,7 +22,7 @@ function varargout = gui_image_analysis(varargin)
 
 % Edit the above text to modify the response to help gui_image_analysis
 
-% Last Modified by GUIDE v2.5 11-Jul-2016 08:41:24
+% Last Modified by GUIDE v2.5 11-Jul-2016 15:45:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,99 +80,119 @@ function load_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 evalin('base','load tree')
 [fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on');
+try 
+    fileInfo = evalin('base','fileInfo');
+catch
+    fileInfo = [];
+end 
 
 if iscell(fnames) == 0  %If no or one file are selected
     if fnames == 0 %If no files are selected
         errordlg('No Files Selected','Error');
     else %if one file is selected
-        fileInfo  = cell(1,1);
         varname = fnames;
         varname = char(strtok(varname,'.'));
         assignin('base',varname,importdata([folder,char(fnames)]));
-        fileInfo{1,1} = varname;
-        fileInfo{1,2} = folder;
-        fileInfo{1,3} = 'Orig';
+        fileInfo{size(fileInfo,1)+1,1} = varname;
+        fileInfo{size(fileInfo,1),2} = folder;
+        fileInfo{size(fileInfo,1),3} = 'Orig';
+        
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames),'.');
-        crop_path = strcat(folder,'Crop\',splitname(1),'_crop.',splitname(2));
-        if exist(char(crop_path),'dir')
-            varname = strcat(fnames,'_crop');
-            folder = strcat(folder,'/Crop/');
-            assignin('base',varname,importdata([folder,'\',char(varname)]));
-            fileInfo{size(fileInfo,1)+1,1} = varname;
-            fileInfo{size(fileInfo,1)+1,2} = folder;
-            fileInfo{size(fileInfo,1)+1,3} = 'Crop';
+        crop_name = strcat(splitname(1),'_crop');
+        crop_folder = strcat(folder,'Crop\');
+        crop_path = strcat(crop_folder,crop_name,'.',splitname(2));
+        if exist(char(crop_path),'file')
+            input =[crop_folder,char(crop_name),'.',char(splitname(2))]; 
+            assignin('base',char(crop_name),importdata(input)) ;
+            fileInfo{size(fileInfo,1)+1,1} = crop_name;
+            fileInfo{size(fileInfo,1),2} = crop_folder;
+            fileInfo{size(fileInfo,1),3} = 'Crop';
         end
 
         %Check to see if classified files exist
-        class_path = strcat(folder,'Class\',splitname(1),'_class.',splitname(2));
-        if exist(char(class_path),'dir')
-            varname = strcat(fnames,'_class');
-            folder = strcat(folder,'/Class/');
-            assignin('base',varname,importdata([folder,'\',char(varname)]));
-            fileInfo{size(fileInfo,1)+1,1} = varname;
-            fileInfo{size(fileInfo,1)+1,2} = folder;
-            fileInfo{size(fileInfo,1)+1,3} = 'Class';
+        class_name = strcat(splitname(1),'_class');
+        class_folder = strcat(folder,'Classification\');
+        class_path = strcat(class_folder,class_name,'.',splitname(2));
+        if exist(char(class_path),'file')
+            input =[crop_folder,char(class_name),'.',char(splitname(2))];
+            assignin('base',char(class_name),importdata(input));
+            fileInfo{size(fileInfo,1)+1,1} = class_name;
+            fileInfo{size(fileInfo,1),2} = class_folder;
+            fileInfo{size(fileInfo,1),3} = 'Class';
         end
         assignin('base','fileInfo',fileInfo);
-        update_table(handles, 1)
+        update_table(handles)
     end   
 else %if multiple files are selected
-    fileInfo = cell(length(fnames),3);
+    fileInfo = [];
     for n = 1:size(fnames,2) %Loop through files   
         varname = fnames(n);
         varname = char(strtok(varname,'.'));
-        assignin('base',varname,importdata([folder,char(fnames(n))]));
-        fileInfo{n,1} = varname;
-        fileInfo{n,2} = folder;
-        fileInfo{n,3} = 'Orig';
+        assignin('base',char(varname),importdata([folder,char(fnames(n))]));
+        fileInfo{size(fileInfo,1)+1,1} = varname;
+        fileInfo{size(fileInfo,1),2} = folder;
+        fileInfo{size(fileInfo,1),3} = 'Orig';
         
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames(n)),'.');
-        crop_path = strcat(folder,'Crop\',splitname(1),'_crop.',splitname(2));
-        if exist(char(crop_path),'dir')
-            varname = strcat(fnames(n),'_crop');
-            folder = strcat(folder,'/Crop/');
-            assignin('base',varname,importdata([folder,'\',char(varname)]));
-            fileInfo{size(fileInfo,1)+1,1} = varname;
-            fileInfo{size(fileInfo,1)+1,2} = folder;
-            fileInfo{size(fileInfo,1)+1,3} = 'Crop';
+        crop_name = strcat(splitname(1),'_crop');
+        crop_folder = strcat(folder,'Crop\');
+        crop_path = strcat(crop_folder,crop_name,'.',splitname(2));
+        if exist(char(crop_path),'file')
+            input =[crop_folder,char(crop_name),'.',char(splitname(2))]; 
+            assignin('base',char(crop_name),importdata(input)) ;
+            fileInfo{size(fileInfo,1)+1,1} = crop_name;
+            fileInfo{size(fileInfo,1),2} = crop_folder;
+            fileInfo{size(fileInfo,1),3} = 'Crop';
         end
         
         %Check to see if classified files exist
-        class_path = strcat(folder,'Class\',splitname(1),'_class.',splitname(2));
-        if exist(char(class_path),'dir')
-            varname = strcat(fnames(n),'_class');
-            folder = strcat(folder,'/Class/');
-            assignin('base',varname,importdata([folder,'\',char(varname)]));
-            fileInfo{size(fileInfo,1)+1,1} = varname;
-            fileInfo{size(fileInfo,1)+1,2} = folder;
-            fileInfo{size(fileInfo,1)+1,3} = 'Class';
+        class_name = strcat(splitname(1),'_class');
+        class_folder = strcat(folder,'Classification\');
+        class_path = strcat(class_folder,class_name,'.',splitname(2));
+        if exist(char(class_path),'file')
+            input =[crop_folder,char(class_name),'.',char(splitname(2))];
+            assignin('base',char(class_name),importdata(input));
+            fileInfo{size(fileInfo,1)+1,1} = class_name;
+            fileInfo{size(fileInfo,1),2} = class_folder;
+            fileInfo{size(fileInfo,1),3} = 'Class';
         end
+        
     end
-    clear i
-    clear varname
     assignin('base','fileInfo',fileInfo); 
-    update_table(handles, size(fnames,2))
+    update_table(handles)
 end
 
-function update_table(handles,var)
+function update_table(handles)
 %Updating GUI table
-x = cell(var,3);
 
 %Update Table with new variables
-vars = evalin('base','who');
-isempty(strfind(vars{1},'_'))
-strfind(vars{1},'DSCN')
-for m = 1:length(vars) %Only show photos in listbox
-    if strfind(vars{m},'DSCN') > 0 && isempty(strfind(vars{m},'_')) == 1 
-        x{m,1} = vars{m};
+allVars = evalin('base','who');
+fileInfo = evalin('base','fileInfo');
+total = 0; %total number of things to display
+index = []; %indices to display
+for i = 1:size(fileInfo,1)
+    if strcmp(fileInfo{i,3},'Orig')== 1
+        total = total + 1;
+        index = [index i];
+    end
+end
+x = cell(total,3);
+
+for m = 1:total %Only show photos in listbox
+    indiv = index(m);
+    for n = 1: length(allVars)
+        if strcmp(fileInfo{indiv,1},allVars(n)) == 1
+            x{m,1} = allVars{n};
+            break
+        end
     end
 end
 
 %Check if the photos have been cropped, update table status
 for j = 1: size(x,1)
-    test = strcmp(strcat(x{j},'_crop'),vars);
+    test = strcmp(strcat(x{j},'_crop'),allVars);
     for t = 1: size(test,1)
         if test(t) == 1
             x{j,2} = 'yes';
@@ -188,7 +208,7 @@ end
 
 %Check if the photos have been classified, update table status
 for k = 1: size(x,1)
-    test = strcmp(strcat(x{j},'_class'),vars);
+    test = strcmp(strcat(x{j},'_class'),allVars);
     for t = 1:size(test,1)
         if test(t) == 1
             x{k,3} = 'yes';
@@ -229,34 +249,150 @@ fileInfo = evalin('base','fileInfo');
 
 for i = 1: size(x,1) %Loop through files
     if strcmp(x{i,2},'no') == 1
-        I = strcat(fileInfo{i,2},fileInfo{i,1},'.jpg'); %Grab file name
-        figure
+        
+        for n = 1:size(fileInfo,1)
+            if strcmp(x{i,1},fileInfo{n,1}) == 1
+                index = n;
+            end
+        end
+        
+        I = char(strcat(fileInfo{index,2},fileInfo{index,1},'.jpg')); %Grab file name
+        figure('units','normalized','outerposition',[0 0 0.5 0.5])
         imshow(I)
-        title([x{i,1},': Drag Rectangle Outline for Crop'],'Interpreter','none')
+        descr = {'1. Drag Rectangle Outline for Crop   2. Right click  3. Select Crop Image 4. The cropped image will appear when done.';};
+        title([fileInfo{index,1}],'Interpreter','none')
+        text(0, -0.02, descr,'Units','normalized','FontSize',12)
         %User drags crop outline
         [Icrop,~] = imcrop; %Crop image
         if isempty(Icrop) == 0  %If the user selected an area to crop
-            figure
+            figure('units','normalized','outerposition',[0.5 0 0.5 0.5])
             imshow(Icrop); %Display Image
-            title([fileInfo{i,1},'_crop',],'Interpreter','none')
-            assignin('base',[fileInfo{i,1},'_crop'],Icrop); %Assign value to variable in specified workspace
-            %assignin('base',[fileInfo{i,1},'_crop_rect'],rect);
-            %dirgui=evalin('base','dirstruct');
-            %eval(['dirgui.',Ifname,'{4}=rect']);
-            fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{i,1},'_crop');
-            fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{i,2},'\Crop\');
+            title([fileInfo{index,1},'_crop',],'Interpreter','none')
+            assignin('base',[fileInfo{index,1},'_crop'],Icrop); %Assign value to variable in specified workspace
+            fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{index,1},'_crop');
+            fileInfo{(size(fileInfo,1)),1} = strcat(fileInfo{index,2},'\Crop\');
             assignin('base','fileInfo',fileInfo)
             
             %SAVE CROPPED FILE TO CROP FOLDER
-            cflder = strcat(fileInfo{i,2},'\Crop\');
+            cflder = strcat(fileInfo{index,2},'\Crop\');
             if isdir(cflder)== 0 %If the directory doesn't exist make it
                 mkdir(cflder)
             end
-            fname = strcat(fileInfo{i,2},'\Crop\',fileInfo{i,1},'_crop.jpg');
+            fname = strcat(fileInfo{index,2},'\Crop\',fileInfo{index,1},'_crop.jpg');
             imwrite(Icrop,fname)
             x{i,2} = 'yes';
+            assignin('base','x',x);
+         
+            % Construct a questdlg with three options
+            choice = questdlg('Crop next image?', 'Continue?', 'Yes','No','No');
+            % Handle response
+            switch choice
+                case 'Yes'
+                    close Figure 1
+                    close Figure 2
+                    continue
+                case 'No'
+                    close Figure 1
+                    close Figure 2
+                    break
+            end
+        else
+            break
         end
-    end
-    
+    end   
 end
-update_table(handles,size(fileInfo,1))
+update_table(handles)
+
+
+% --- Executes on button press in classify_pushbutton.
+function classify_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to classify_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%Grab variables from workspace
+x = evalin('base','x');
+fileInfo = evalin('base','fileInfo');
+
+for i = 1: size(x,1) %Loop through files
+    if strcmp(x{i,3},'no') == 1 && strcmp(x{i,2},'yes') == 1
+        
+        for n = 1:size(fileInfo,1)
+            if strcmp(x{i,1},fileInfo{n,1}) == 1
+                index = n;
+            end
+        end
+        
+        fname = char(strcat(fileInfo{index,2},fileInfo{index,1},'_crop.jpg')); %Grab file name
+        I = evalin('base',fileInfo{index,1});
+        t0 = evalin('base','t0');
+        
+        %Apply Tree
+        for j=1:3
+            RowS=I(:,:,j);
+            all_rgb(:,j)=double(RowS(:));
+        end
+        ratioGR=all_rgb(:,2)./all_rgb(:,1);
+        sumRGB=sum(all_rgb,2);
+        data=[all_rgb,ratioGR,sumRGB];
+        treeOut_x_0=treeval(t0,data);      
+        %Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
+        R=all_rgb(:,1);
+        G=all_rgb(:,2);
+        B=all_rgb(:,3);
+        treeOut_x_0(B>G+40 & R>160)=4; %Blue Flowers
+        treeOut_x_0(R./B>1.8 & G./B>1.8 & R+G>400)=5; %YELLOW FLOWERS
+
+        %Create Figure    
+        szImg=size(RowS);
+        m=szImg(1);
+        n=szImg(2);
+        yout = reshape(treeOut_x_0,m,n);
+        
+        assignin('base',[fileInfo{index,1},'_class'],yout); %Assign value to variable in specified workspace
+        fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{index,1},'_class');
+        fileInfo{(size(fileInfo,1)),1} = strcat(fileInfo{index,2},'\Classification\');
+        assignin('base','fileInfo',fileInfo)
+        
+        %DISPLAY CLASSIFICATION RESULTS
+        figure('units','normalized','outerposition',[0 0 0.5 0.5])
+        subplot(1,2,1)%Original Image
+        hold on
+        title([fileInfo{index,1},': Original'],'Interpreter','none')
+        imagesc(I)
+        axis square
+        hold off
+        
+        subplot(1,2,2) %Classification
+        hold on
+        title([fileInfo{index,1},': Classification'],'Interpreter','none')
+        imagesc(yout)%Display image with scaled colors
+        axis square
+        hold on
+
+        %SAVE CLASSIFICATION FILE TO CLASSIFICATION FOLDER
+        cflder = strcat(fileInfo{index,2},'\Classification\');
+        if isdir(cflder)== 0 %If the directory doesn't exist make it
+            mkdir(cflder)
+        end
+        fname = strcat(fileInfo{index,2},'\Classification\',fileInfo{index,1},'_class.jpg');
+        imwrite(yout,fname);
+        
+        x{i,3} = 'yes';
+        assignin('base','x',x);
+        
+        % Construct a questdlg with three options
+        choice = questdlg('Classify next image?', 'Continue?', 'Yes','No','No');
+        % Handle response
+        switch choice
+            case 'Yes'
+                close Figure 1
+                continue
+            case 'No'
+                close Figure 1
+                break
+        end
+    else
+        break
+    end
+end   
+update_table(handles)
