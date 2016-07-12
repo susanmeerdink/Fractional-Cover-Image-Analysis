@@ -388,10 +388,23 @@ for i = 1: size(x,1) %Loop through files
             [num2str(100*fractions(count,3),2),'% Green Vegetation'],...
             [num2str(100*fractions(count,4),2),'% Blue Flowers'],...
             [num2str(100*fractions(count,5),2),'% Yellow Flowers']};
-        colorbar('Location','west',...
-            'Ticks',[0.1, 0.3, 0.5, 0.7, 0.9],...
-            'FontSize',14,...
-            'TickLabels',ytlabel)
+        versionTest = version('-release');
+        if str2num(versionTest(1:4)) == 2015
+            %Only works for MATLAB 2015
+            colorbar('Location','west',...
+                'Ticks',[0.1, 0.3, 0.5, 0.7, 0.9],...
+                'FontSize',14,...
+                'TickLabels',ytlabel)
+        else
+            %For older versions of matlab (tested on 2013)
+            %AxesH = axes('Clim',[0 1]); 'peer',AxesH,'h',
+            colorbar('Location','west','YTick',[0.1:0.2:0.9])
+            text(0.1,0.1, ytlabel(1),'FontSize',14)
+            text(0.1,0.3, ytlabel(2),'FontSize',14)
+            text(0.1,0.5, ytlabel(3),'FontSize',14)
+            text(0.1,0.7, ytlabel(4),'FontSize',14)
+            text(0.1,0.9, ytlabel(5),'FontSize',14)
+        end 
         axis off
         hold off
 
