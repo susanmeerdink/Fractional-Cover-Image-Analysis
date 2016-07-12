@@ -22,7 +22,8 @@ function varargout = gui_image_analysis(varargin)
 
 % Edit the above text to modify the response to help gui_image_analysis
 
-% Last Modified by GUIDE v2.5 11-Jul-2016 15:45:06
+% Last Modified by GUIDE v2.5 12-Jul-2016 10:55:18
+% Modified by Susan Meerdink
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,7 +58,6 @@ handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
-
 % UIWAIT makes gui_image_analysis wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -78,21 +78,25 @@ function load_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to load_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-evalin('base','load tree')
+% this function loads in the files for image analysis
+
+evalin('base','load tree') %Load in the classification tree for future steps
 [fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on');
-try 
+try %If fileInfo exists (only happens if you are loading in files a second time)
     fileInfo = evalin('base','fileInfo');
-catch
+catch %If fileInfo doesn't exist
     fileInfo = [];
 end 
 
-if iscell(fnames) == 0  %If no or one file are selected
+%Loop through and open files
+if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a string NOT cell
     if fnames == 0 %If no files are selected
         errordlg('No Files Selected','Error');
     else %if one file is selected
+        %Setting up variables for workspace and future analysis
         varname = fnames;
         varname = char(strtok(varname,'.'));
-        assignin('base',varname,importdata([folder,char(fnames)]));
+        assignin('base',varname,importdata([folder,char(fnames)])); %assigning to workspace
         fileInfo{size(fileInfo,1)+1,1} = varname;
         fileInfo{size(fileInfo,1),2} = folder;
         fileInfo{size(fileInfo,1),3} = 'Orig';
@@ -121,12 +125,15 @@ if iscell(fnames) == 0  %If no or one file are selected
             fileInfo{size(fileInfo,1),2} = class_folder;
             fileInfo{size(fileInfo,1),3} = 'Class';
         end
+        
+        %Assign final variables to workspace & update GUI
         assignin('base','fileInfo',fileInfo);
         update_table(handles)
     end   
 else %if multiple files are selected
     fileInfo = [];
     for n = 1:size(fnames,2) %Loop through files   
+        %Setting up variables for workspace and future analysis
         varname = fnames(n);
         varname = char(strtok(varname,'.'));
         assignin('base',char(varname),importdata([folder,char(fnames(n))]));
@@ -152,7 +159,7 @@ else %if multiple files are selected
         class_folder = strcat(folder,'Classification\');
         class_path = strcat(class_folder,class_name,'.',splitname(2));
         if exist(char(class_path),'file')
-            input =[crop_folder,char(class_name),'.',char(splitname(2))];
+            input = [class_folder,char(class_name),'.',char(splitname(2))];
             assignin('base',char(class_name),importdata(input));
             fileInfo{size(fileInfo,1)+1,1} = class_name;
             fileInfo{size(fileInfo,1),2} = class_folder;
@@ -160,12 +167,14 @@ else %if multiple files are selected
         end
         
     end
+    %Assign final variables to workspace & update GUI
     assignin('base','fileInfo',fileInfo); 
     update_table(handles)
 end
 
 function update_table(handles)
-%Updating GUI table
+%Updating GUI table, this is called anything loading, cropping, or
+%classification is completed.
 
 %Update Table with new variables
 allVars = evalin('base','who');
@@ -180,7 +189,7 @@ for i = 1:size(fileInfo,1)
 end
 x = cell(total,3);
 
-for m = 1:total %Only show photos in listbox
+for m = 1:total %Find the original file names in the workspace variables
     indiv = index(m);
     for n = 1: length(allVars)
         if strcmp(fileInfo{indiv,1},allVars(n)) == 1
@@ -208,7 +217,7 @@ end
 
 %Check if the photos have been classified, update table status
 for k = 1: size(x,1)
-    test = strcmp(strcat(x{j},'_class'),allVars);
+    test = strcmp(strcat(x{k},'_class'),allVars);
     for t = 1:size(test,1)
         if test(t) == 1
             x{k,3} = 'yes';
@@ -225,23 +234,12 @@ end
 assignin('base','x',x); %Assign variable to workspace
 set(handles.uitable1,'Data',x) %Update table in GUI
 
-% --- Executes when entered data in editable cell(s) in uitable1.
-function uitable1_CellEditCallback(hObject, eventdata, handles)
-% hObject    handle to uitable1 (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
-%	Indices: row and column indices of the cell(s) edited
-%	PreviousData: previous data for the cell(s) edited
-%	EditData: string(s) entered by the user
-%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
-%	Error: error string when failed to convert EditData to appropriate value for Data
-% handles    structure with handles and user data (see GUIDATA)
-
-
 % --- Executes on button press in cropbutton.
 function cropbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to cropbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% This function loops through and crops images based on user input
 
 %Grab variables from workspace
 x = evalin('base','x');
@@ -249,19 +247,23 @@ fileInfo = evalin('base','fileInfo');
 
 for i = 1: size(x,1) %Loop through files
     if strcmp(x{i,2},'no') == 1
-        
+        %Find the original file information
         for n = 1:size(fileInfo,1)
             if strcmp(x{i,1},fileInfo{n,1}) == 1
                 index = n;
             end
         end
         
+        %Display original image
         I = char(strcat(fileInfo{index,2},fileInfo{index,1},'.jpg')); %Grab file name
         figure('units','normalized','outerposition',[0 0 0.5 0.5])
         imshow(I)
-        descr = {'1. Drag Rectangle Outline for Crop   2. Right click  3. Select Crop Image 4. The cropped image will appear when done.';};
+        descr1 = {'1. Drag Rectangle Outline for Crop   2. Right click  3. Select Crop Image 4. The cropped image will appear when done.';};
+        descr2 = {'Goal: Drag rectangle to cover as much area as possible within white square (do not include white square!)'};
         title([fileInfo{index,1}],'Interpreter','none')
-        text(0, -0.02, descr,'Units','normalized','FontSize',12)
+        text(0, -0.02, descr1,'Units','normalized','FontSize',12)
+        text(0, -0.05, descr2,'Units','normalized','FontSize',12)
+        
         %User drags crop outline
         [Icrop,~] = imcrop; %Crop image
         if isempty(Icrop) == 0  %If the user selected an area to crop
@@ -270,7 +272,8 @@ for i = 1: size(x,1) %Loop through files
             title([fileInfo{index,1},'_crop',],'Interpreter','none')
             assignin('base',[fileInfo{index,1},'_crop'],Icrop); %Assign value to variable in specified workspace
             fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{index,1},'_crop');
-            fileInfo{(size(fileInfo,1)),1} = strcat(fileInfo{index,2},'\Crop\');
+            fileInfo{(size(fileInfo,1)),2} = strcat(fileInfo{index,2},'\Crop\');
+            fileInfo{(size(fileInfo,1)),3} = 'Crop';
             assignin('base','fileInfo',fileInfo)
             
             %SAVE CROPPED FILE TO CROP FOLDER
@@ -296,45 +299,48 @@ for i = 1: size(x,1) %Loop through files
                     close Figure 2
                     break
             end
-        else
+        else %If user didn't select an area to crop, don't do anything
             break
         end
     end   
 end
 update_table(handles)
 
-
 % --- Executes on button press in classify_pushbutton.
 function classify_pushbutton_Callback(hObject, eventdata, handles)
 % hObject    handle to classify_pushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% this function classifies the image into fractional components: NPV, GV,
+% Shade, Blue flowers, Yellow Flowers.
+
 %Grab variables from workspace
 x = evalin('base','x');
 fileInfo = evalin('base','fileInfo');
 count = 1;
 fractions = [];
+t0 = evalin('base','t0');
+
 for i = 1: size(x,1) %Loop through files
-    if strcmp(x{i,3},'no') == 1 && strcmp(x{i,2},'yes') == 1
-        
+    if strcmp(x{i,3},'no') == 1 && strcmp(x{i,2},'yes') == 1 %If the file has been cropped, but not classified
+        %Find the cropped file information
         for n = 1:size(fileInfo,1)
             if strcmp(strcat(x{i,1},'_crop'),fileInfo{n,1}) == 1
-                index = n;
+                pos = n;
             end
         end
         
-        fname = char(strcat(fileInfo{index,2},fileInfo{index,1},'_crop.jpg')); %Grab file name
-        I = evalin('base',char(fileInfo{index,1}));
-        t0 = evalin('base','t0');
+        %Grabbing workspace variables
+        I = evalin('base',char(fileInfo{pos,1}));
         
         %Apply Tree
-        for j=1:3
-            RowS=I(:,:,j);
-            all_rgb(:,j)=double(RowS(:));
+        for j = 1:3
+            RowS = I(:,:,j);
+            all_rgb(:,j) = double(RowS(:));
         end
-        ratioGR=all_rgb(:,2)./all_rgb(:,1);
-        sumRGB=sum(all_rgb,2);
-        data=[all_rgb,ratioGR,sumRGB];
+        ratioGR = all_rgb(:,2)./all_rgb(:,1);
+        sumRGB = sum(all_rgb,2);
+        data = [all_rgb,ratioGR,sumRGB];
         treeOut_x_0=treeval(t0,data);      
         %Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
         R=all_rgb(:,1);
@@ -342,7 +348,8 @@ for i = 1: size(x,1) %Loop through files
         B=all_rgb(:,3);
         treeOut_x_0(B>G+40 & R>160)=4; %Blue Flowers
         treeOut_x_0(R./B>1.8 & G./B>1.8 & R+G>400)=5; %YELLOW FLOWERS
-        fractions(count,:) = hist(treeOut_x_0,1:5)/length(sumRGB);
+        fractions(count,:) = horzcat(size(fileInfo,1)+1,hist(treeOut_x_0,1:5)/length(sumRGB));
+        %Column Organization: index of fileInfo, Percentages of NPV, Shade, GV, Blue Flowers, Yellow Flowers
 
         %Create Figure    
         szImg=size(RowS);
@@ -350,59 +357,65 @@ for i = 1: size(x,1) %Loop through files
         n=szImg(2);
         yout = reshape(treeOut_x_0,m,n);
         
-        splitname = strsplit(char(fileInfo{index,1}),'_');
+        %Updating Variable names
+        splitname = strsplit(char(fileInfo{pos,1}),'_');
         new_name = char(strcat(splitname(1),'_class'));
         assignin('base',new_name,yout); %Assign value to variable in specified workspace
-        fileInfo{(size(fileInfo,1)+1),1} = new_name;
-        fileInfo{(size(fileInfo,1)),1} = strcat(fileInfo{index,2},'\Classification\');
-        assignin('base','fileInfo',fileInfo)
         
         %DISPLAY CLASSIFICATION RESULTS
-        figure('units','normalized','outerposition',[0 0 0.5 0.5])
-        subplot(1,2,1)%Original Image
+        figure('units','normalized','outerposition',[0 0 1 0.75])
+        subplot(1,3,1)%Original Image
         hold on
-        title([fileInfo{index,1},'Original'],'Interpreter','none')
+        title([fileInfo{pos,1},'Original'],'Interpreter','none')
         imagesc(I)
         axis square; axis off
         hold off
         
-        subplot(1,2,2) %Classification
+        subplot(1,3,2) %Classification
         hold on
         title([new_name;'Classification'],'Interpreter','none')
-        imagesc(yout)%Display image with scaled colors
+        im = imagesc(yout);%Display image with scaled colors
         cmap = [1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
-            set(gca,'CLim',[1 5])
+        set(gca,'CLim',[1 5])
         colormap(cmap)
-        ytlabel={[num2str(100*fractions(count,1),2),'% NPV'],...
-            [num2str(100*fractions(count,2),2),'% Shade'],...
-            [num2str(100*fractions(count,3),2),'% GV'],...
-            [num2str(100*fractions(count,4),2),'% Blue Flr'],...
-            [num2str(100*fractions(count,5),2),'% Yellow Flr']};
-%         colorbar(gca,... 
-%             'Box','on',...
-%             'YLim',[1.25,4.75],... %
-%             'YTick',[1.5 2.25 3 3.75 4.5],...
-%             'YTickLabel',ytlabel,...
-%             'Location','manual','FontWeight','Bold');
         axis square; axis off
-        colorbar('Location','eastoutside',...
-            'Ticks',[ 1.5, 2.25, 3, 3.75, 4.5],...
-            'TickLabels',ytlabel)
-            %'TickLabels',{'NPV','Shade','GV','Blue Flower','Yellow Flower'}) %
         hold on
+        
+        subplot(1,3,3) %ColorBar
+        hold on
+        ytlabel={[num2str(100*fractions(count,1),2),'% Non-Photosynthetic Vegetation'],...
+            [num2str(100*fractions(count,2),2),'% Shade'],...
+            [num2str(100*fractions(count,3),2),'% Green Vegetation'],...
+            [num2str(100*fractions(count,4),2),'% Blue Flowers'],...
+            [num2str(100*fractions(count,5),2),'% Yellow Flowers']};
+        colorbar('Location','west',...
+            'Ticks',[0.1, 0.3, 0.5, 0.7, 0.9],...
+            'FontSize',14,...
+            'TickLabels',ytlabel)
+        axis off
+        hold off
 
+        %Updating More Variables and assigning to workspace
+        splitfolder = strsplit(fileInfo{pos,2},'Crop\');
+        cflder = char(strcat(splitfolder(1),'Classification\'));
+        fileInfo{(size(fileInfo,1)+1),1} = new_name;
+        fileInfo{(size(fileInfo,1)),2} = cflder;
+        fileInfo{(size(fileInfo,1)),3} = 'Class';
+        assignin('base','fileInfo',fileInfo)
+        
         %SAVE CLASSIFICATION FILE TO CLASSIFICATION FOLDER
-        cflder = strcat(fileInfo{index,2},'\Classification\');
         if isdir(cflder)== 0 %If the directory doesn't exist make it
             mkdir(cflder)
         end
-        fname = strcat(fileInfo{index,2},'\Classification\',new_name,'.jpg');
-        imwrite(yout,fname);
+        fname = strcat(cflder,new_name,'.jpg');
+        imwrite(yout,cmap,fname);
         
         %Updating, assigning variables
         x{i,3} = 'yes';
         assignin('base','x',x);
         count = count + 1;
+        clear all_rgb
+        assignin('base','fractions',fractions)
         
         % Construct a questdlg with three options
         choice = questdlg('Classify next image?', 'Continue?', 'Yes','No','No');
@@ -416,7 +429,28 @@ for i = 1: size(x,1) %Loop through files
                 break
         end
     else
-        break
+        continue
     end
 end   
 update_table(handles)
+
+% --- Executes on button press in output_pushbutton.
+function output_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to output_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% This function takes the classification results executed in this session
+% and saves them to a csv file
+
+[fileout,path] = uiputfile(['fractional_cover_stats_',datestr(now,'ddmmmyy'),'.csv'],'Save file name');
+fileInfo = evalin('base','fileInfo');
+fractions = evalin('base','fractions');
+fid = fopen([path,char(fileout)],'w');
+fprintf(fid,'Filename,NPV,Shade,GV,Flower Blue, Flower Yellow\n');
+for i = 1:size(fractions,1)
+    fprintf(fid,'%s%s',char(fileInfo{fractions(i,1)}),',');
+    fprintf(fid,'%f ,%f,%f,%f,%f,',fractions(i,[2:6])); %Classification Values (5 vals, cell 5)
+    fprintf(fid,'%s,\n',char(fileInfo{fractions(i,1),2})); %File Location for Classification Images
+end
+fclose(fid);
+msgbox('Completed processing of classification results.','Done!')
