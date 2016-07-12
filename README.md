@@ -13,7 +13,7 @@ blue and yellow flowers. This code is used to process this imagery and get perce
 
 ### Dependencies/ Requirements:
 This code was designed for a Nikon Coolpix 5700. It may work on other imagery, but needs to be tested.
-Developed on MATLAB 2015a. 
+Developed on MATLAB 2015 and MATLAB 2013. 
 
 ### Steps:
 #### STARTING PROGRAM:
@@ -33,16 +33,18 @@ Developed on MATLAB 2015a.
 2. The program will pop up a window showing you the original image. 
 3. Click and drag over the image to select the area of interest. Generally speaking this is the area inside the white square in the picture. Avoid capturing the white square or any other objects that may have entered the field of view. 
 4. Once the area of interest is selected, right click and choose "Crop Image".
-5. The program will open a new figure with the cropped image and will save the image.
-6. A dialog window will appear saying "Do you want to continue cropping?". To move on to the next image, hit yes. If you are done cropping for now, hit no. 
+5. The program will open a new figure with the cropped image.
+6. The program will automatically save the cropped image. An additional folder will be added to the directory containing the original folders titled "Crop". The image will be saved into this new Crop folder with the originalname_crop.jpg. and will save the image.
+7. A dialog window will appear saying "Do you want to continue cropping?". To move on to the next image, hit yes. If you are done cropping for now, hit no. 
 *The program will always start with the first file that needs to be cropped and goes down the list.
 
 #### CLASSIFYING IMAGES:
 1. click "Classify" button to start going through your images to classify using a pre-defined decision tree.
 *This decision tree was built for the Coal Oil Point Reserve site. Use caution if using in a different area.
 2. The program will classify the first image that has been cropped but not classified. 
-3. A figure will pop up with the cropped image, classified image, and a colorbar. The colorbar includes the percentages for each of the classes present in the image. The program will automatically save the classified image.
-4. A dialog window will appear saying "Do you want to continue cropping?". To move on to the next image, hit yes. If you are done classifying for now, hit no. 
+3. A figure will pop up with the cropped image, classified image, and a colorbar. The colorbar includes the percentages for each of the classes present in the image. 
+4. The program will automatically save the classified image. An additional folder will be added to the directory containing the original folders titled "Classification". The image will be saved into this new Classification folder with the originalname_class.jpg.
+5. A dialog window will appear saying "Do you want to continue cropping?". To move on to the next image, hit yes. If you are done classifying for now, hit no. 
 
 #### OUTPUT CLASSIFICATION RESULTS:
 1. Click "Output to *.csv" button to output this current sessions classification results. The program will not output results from images that were classified outside of the matlab session.
