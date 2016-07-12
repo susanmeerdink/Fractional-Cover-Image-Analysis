@@ -446,7 +446,7 @@ function output_pushbutton_Callback(hObject, eventdata, handles)
 fileInfo = evalin('base','fileInfo');
 fractions = evalin('base','fractions');
 fid = fopen([path,char(fileout)],'w');
-fprintf(fid,'Filename,NPV,Shade,GV,Flower Blue, Flower Yellow\n');
+fprintf(fid,'Filename,NPV,Shade,GV,Flower Blue, Flower Yellow,File Location\n');
 for i = 1:size(fractions,1)
     fprintf(fid,'%s%s',char(fileInfo{fractions(i,1)}),',');
     fprintf(fid,'%f ,%f,%f,%f,%f,',fractions(i,[2:6])); %Classification Values (5 vals, cell 5)
