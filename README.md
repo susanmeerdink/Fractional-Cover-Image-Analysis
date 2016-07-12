@@ -51,3 +51,9 @@ Developed on MATLAB 2015 and MATLAB 2013.
 2. A dialog box will open allowing the user to choose the name and location of the output .csv file. 
 3. The program will then save the classification results to the .csv file.
 4. When the saving is complete a dialog box will appear saying "Completed processing of classification results."
+
+### Known Warnings
+These are warnings that MATLAB will throw as you run this program. They are known issues and will be fixed in future versions. They do not impact processing and should be ignored for the moment.
+
+*	Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
+*	Warning: Image is too big to fit on screen; displaying at 33% 
