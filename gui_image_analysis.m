@@ -94,15 +94,15 @@ if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a
         errordlg('No Files Selected','Error');
     else %if one file is selected
         %Setting up variables for workspace and future analysis
-        varname = fnames;
-        varname = char(strtok(varname,'.'));
-        if isvarname(varname) == 0
-            varname = strcat('var_',varname);
-        end
+        varname = fnames;%get filename to prepare for matlab variable
+        varname = char(strtok(varname,'.'));% remove file extension
+        filename  = varname; %Save the original file name
+        varname = strcat('var_',varname);%add var_ to variable name in case it starts with numbers
         assignin('base',varname,importdata([folder,char(fnames)])); %assigning to workspace
         fileInfo{size(fileInfo,1)+1,1} = varname;
-        fileInfo{size(fileInfo,1),2} = folder;
-        fileInfo{size(fileInfo,1),3} = 'Orig';
+        fileInfo{size(fileInfo,1),2} = filename;
+        fileInfo{size(fileInfo,1),3} = folder;
+        fileInfo{size(fileInfo,1),4} = 'Orig';
         
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames),'.');
@@ -111,22 +111,26 @@ if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a
         crop_path = strcat(crop_folder,crop_name,'.',splitname(2));
         if exist(char(crop_path),'file')
             input =[crop_folder,char(crop_name),'.',char(splitname(2))]; 
-            assignin('base',char(crop_name),importdata(input)) ;
-            fileInfo{size(fileInfo,1)+1,1} = crop_name;
-            fileInfo{size(fileInfo,1),2} = crop_folder;
-            fileInfo{size(fileInfo,1),3} = 'Crop';
+            var_crop_name = strcat('var_',crop_name); 
+            assignin('base',char(var_crop_name),importdata(input)) ;
+            fileInfo{size(fileInfo,1)+1,1} = var_crop_name;
+            fileInfo{size(fileInfo,1),2} = crop_name;
+            fileInfo{size(fileInfo,1),3} = crop_folder;
+            fileInfo{size(fileInfo,1),4} = 'Crop';
         end
 
         %Check to see if classified files exist
         class_name = strcat(splitname(1),'_class');
         class_folder = strcat(folder,'Classification\');
         class_path = strcat(class_folder,class_name,'.',splitname(2));
+        var_class_name = strcat('var_',class_name);
         if exist(char(class_path),'file')
             input =[crop_folder,char(class_name),'.',char(splitname(2))];
-            assignin('base',char(class_name),importdata(input));
-            fileInfo{size(fileInfo,1)+1,1} = class_name;
-            fileInfo{size(fileInfo,1),2} = class_folder;
-            fileInfo{size(fileInfo,1),3} = 'Class';
+            assignin('base',char(var_class_name),importdata(input));
+            fileInfo{size(fileInfo,1)+1,1} = var_class_name;
+            fileInfo{size(fileInfo,1),2} = class_name;
+            fileInfo{size(fileInfo,1),3} = class_folder;
+            fileInfo{size(fileInfo,1),4} = 'Class';
         end
         
         %Assign final variables to workspace & update GUI
@@ -137,15 +141,15 @@ else %if multiple files are selected
     fileInfo = [];
     for n = 1:size(fnames,2) %Loop through files   
         %Setting up variables for workspace and future analysis
-        varname = fnames(n);
-        varname = char(strtok(varname,'.'));
-        if isvarname(varname) == 0
-            varname = strcat('var_',varname);
-        end
+        varname = fnames(n); %get file name to prepare for variable names
+        varname = char(strtok(varname,'.')); %remove file extension
+        filename = varname; %set the original file name
+        varname = strcat('var_',varname); %add 'var_' onto front in case the file starts with numbers (which isn't a valid matlab variable name
         assignin('base',char(varname),importdata([folder,char(fnames(n))]));
         fileInfo{size(fileInfo,1)+1,1} = varname;
-        fileInfo{size(fileInfo,1),2} = folder;
-        fileInfo{size(fileInfo,1),3} = 'Orig';
+        fileInfo{size(fileInfo,1),2} = filename;
+        fileInfo{size(fileInfo,1),3} = folder;
+        fileInfo{size(fileInfo,1),4} = 'Orig';
         
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames(n)),'.');
@@ -153,11 +157,13 @@ else %if multiple files are selected
         crop_folder = strcat(folder,'Crop\');
         crop_path = strcat(crop_folder,crop_name,'.',splitname(2));
         if exist(char(crop_path),'file')
-            input =[crop_folder,char(crop_name),'.',char(splitname(2))]; 
-            assignin('base',char(crop_name),importdata(input)) ;
-            fileInfo{size(fileInfo,1)+1,1} = crop_name;
-            fileInfo{size(fileInfo,1),2} = crop_folder;
-            fileInfo{size(fileInfo,1),3} = 'Crop';
+            input = [crop_folder,char(crop_name),'.',char(splitname(2))]; 
+            var_crop_name = strcat('var_',crop_name);
+            assignin('base',char(var_crop_name),importdata(input)) ;
+            fileInfo{size(fileInfo,1)+1,1} = var_crop_name;
+            fileInfo{size(fileInfo,1),2} = crop_name;
+            fileInfo{size(fileInfo,1),3} = crop_folder;
+            fileInfo{size(fileInfo,1),4} = 'Crop';
         end
         
         %Check to see if classified files exist
@@ -166,10 +172,12 @@ else %if multiple files are selected
         class_path = strcat(class_folder,class_name,'.',splitname(2));
         if exist(char(class_path),'file')
             input = [class_folder,char(class_name),'.',char(splitname(2))];
-            assignin('base',char(class_name),importdata(input));
-            fileInfo{size(fileInfo,1)+1,1} = class_name;
-            fileInfo{size(fileInfo,1),2} = class_folder;
-            fileInfo{size(fileInfo,1),3} = 'Class';
+            var_class_name = strcat('var_',class_name);
+            assignin('base',char(var_class_name),importdata(input));
+            fileInfo{size(fileInfo,1)+1,1} = var_class_name;
+            fileInfo{size(fileInfo,1),2} = class_name;
+            fileInfo{size(fileInfo,1),3} = class_folder;
+            fileInfo{size(fileInfo,1),4} = 'Class';
         end
         
     end
@@ -187,8 +195,8 @@ allVars = evalin('base','who');
 fileInfo = evalin('base','fileInfo');
 total = 0; %total number of things to display
 index = []; %indices to display
-for i = 1:size(fileInfo,1) %get the 
-    if strcmp(fileInfo{i,3},'Orig')== 1
+for i = 1:size(fileInfo,1) %get the number of files
+    if strcmp(fileInfo{i,4},'Orig')== 1
         total = total + 1;
         index = [index i];
     end
@@ -199,7 +207,7 @@ for m = 1:total %Find the original file names in the workspace variables
     indiv = index(m);
     for n = 1: length(allVars)
         if strcmp(fileInfo{indiv,1},allVars(n)) == 1
-            x{m,1} = allVars{n};
+            x{m,1} = strrep(allVars{n},'var_','');
             break
         end
     end
@@ -207,7 +215,7 @@ end
 
 %Check if the photos have been cropped, update table status
 for j = 1: size(x,1)
-    test = strcmp(strcat(x{j},'_crop'),allVars);
+    test = strcmp(strcat('var_',x{j},'_crop'),allVars);
     for t = 1: size(test,1)
         if test(t) == 1
             x{j,2} = 'yes';
@@ -223,7 +231,7 @@ end
 
 %Check if the photos have been classified, update table status
 for k = 1: size(x,1)
-    test = strcmp(strcat(x{k},'_class'),allVars);
+    test = strcmp(strcat('var_',x{k},'_class'),allVars);
     for t = 1:size(test,1)
         if test(t) == 1
             x{k,3} = 'yes';
@@ -255,13 +263,13 @@ for i = 1: size(x,1) %Loop through files
     if strcmp(x{i,2},'no') == 1
         %Find the original file information
         for n = 1:size(fileInfo,1)
-            if strcmp(x{i,1},fileInfo{n,1}) == 1
+            if strcmp(strcat('var_',x{i,1}),fileInfo{n,1}) == 1
                 index = n;
             end
         end
         
         %Display original image
-        I = char(strcat(fileInfo{index,2},fileInfo{index,1},'.jpg')); %Grab file name
+        I = char(strcat(fileInfo{index,3},fileInfo{index,2},'.jpg')); %Grab file name
         figure('units','normalized','outerposition',[0 0 0.5 0.5])
         imshow(I)
         descr1 = {'1. Drag Rectangle Outline for Crop   2. Right click  3. Select Crop Image 4. The cropped image will appear when done.';};
@@ -278,16 +286,17 @@ for i = 1: size(x,1) %Loop through files
             title([fileInfo{index,1},'_crop',],'Interpreter','none')
             assignin('base',[fileInfo{index,1},'_crop'],Icrop); %Assign value to variable in specified workspace
             fileInfo{(size(fileInfo,1)+1),1} = strcat(fileInfo{index,1},'_crop');
-            fileInfo{(size(fileInfo,1)),2} = strcat(fileInfo{index,2},'\Crop\');
-            fileInfo{(size(fileInfo,1)),3} = 'Crop';
+            fileInfo{(size(fileInfo,1)),2} = strcat(fileInfo{index,2},'_crop');
+            fileInfo{(size(fileInfo,1)),3} = strcat(fileInfo{index,3},'\Crop\');
+            fileInfo{(size(fileInfo,1)),4} = 'Crop';
             assignin('base','fileInfo',fileInfo)
             
             %SAVE CROPPED FILE TO CROP FOLDER
-            cflder = strcat(fileInfo{index,2},'\Crop\');
+            cflder = strcat(fileInfo{index,3},'\Crop\');
             if isdir(cflder)== 0 %If the directory doesn't exist make it
                 mkdir(cflder)
             end
-            fname = strcat(fileInfo{index,2},'\Crop\',fileInfo{index,1},'_crop.jpg');
+            fname = strcat(fileInfo{index,3},'\Crop\',fileInfo{index,2},'_crop.jpg');
             imwrite(Icrop,fname)
             x{i,2} = 'yes';
             assignin('base','x',x);
@@ -331,7 +340,7 @@ for i = 1: size(x,1) %Loop through files
     if strcmp(x{i,3},'no') == 1 && strcmp(x{i,2},'yes') == 1 %If the file has been cropped, but not classified
         %Find the cropped file information
         for n = 1:size(fileInfo,1)
-            if strcmp(strcat(x{i,1},'_crop'),fileInfo{n,1}) == 1
+            if strcmp(strcat('var_',x{i,1},'_crop'),fileInfo{n,1}) == 1
                 pos = n;
             end
         end
@@ -364,22 +373,22 @@ for i = 1: size(x,1) %Loop through files
         yout = reshape(treeOut_x_0,m,n);
         
         %Updating Variable names
-        splitname = strsplit(char(fileInfo{pos,1}),'_');
-        new_name = char(strcat(splitname(1),'_class'));
-        assignin('base',new_name,yout); %Assign value to variable in specified workspace
+        new_name = char(strrep(fileInfo{pos,2},'_crop','_class'));
+        var_name = char(strcat('var_',new_name));
+        assignin('base',var_name,yout); %Assign value to variable in specified workspace
         
         %DISPLAY CLASSIFICATION RESULTS
         figure('units','normalized','outerposition',[0 0 1 0.75])
         subplot(1,3,1)%Original Image
         hold on
-        title([fileInfo{pos,1},'Original'],'Interpreter','none')
+        title([fileInfo{pos,2},' Original'],'Interpreter','none')
         imagesc(I)
         axis square; axis off
         hold off
         
         subplot(1,3,2) %Classification
         hold on
-        title([new_name;'Classification'],'Interpreter','none')
+        title([new_name, ' Classification'],'Interpreter','none')
         im = imagesc(yout);%Display image with scaled colors
         cmap = [1 1 1; 0 0 0; 0 1 0; 0 0 1; 1 1 0]; %colormap: white, black, green, [Blue, Yellow]
         set(gca,'CLim',[1 5])
@@ -414,11 +423,11 @@ for i = 1: size(x,1) %Loop through files
         hold off
 
         %Updating More Variables and assigning to workspace
-        splitfolder = strsplit(fileInfo{pos,2},'Crop\');
-        cflder = char(strcat(splitfolder(1),'Classification\'));
-        fileInfo{(size(fileInfo,1)+1),1} = new_name;
-        fileInfo{(size(fileInfo,1)),2} = cflder;
-        fileInfo{(size(fileInfo,1)),3} = 'Class';
+        cflder = char(strrep(fileInfo{pos,3},'Crop\','Classification\'));
+        fileInfo{(size(fileInfo,1)+1),1} = var_name;
+        fileInfo{(size(fileInfo,1)),2} = new_name;
+        fileInfo{(size(fileInfo,1)),3} = cflder;
+        fileInfo{(size(fileInfo,1)),4} = 'Class';
         assignin('base','fileInfo',fileInfo)
         
         %SAVE CLASSIFICATION FILE TO CLASSIFICATION FOLDER
@@ -459,16 +468,16 @@ function output_pushbutton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 % This function takes the classification results executed in this session
 % and saves them to a csv file
-
-[fileout,path] = uiputfile(['fractional_cover_stats_',datestr(now,'ddmmmyy'),'.csv'],'Save file name');
 fileInfo = evalin('base','fileInfo');
 fractions = evalin('base','fractions');
+outputFile = strcat(fileInfo{1,3},'fractional_cover_stats_',datestr(now,'ddmmmyy'),'.csv');
+[fileout,path] = uiputfile(outputFile,'Save file name');
 fid = fopen([path,char(fileout)],'w');
 fprintf(fid,'Filename,NPV,Shade,GV,Flower Blue, Flower Yellow,File Location\n');
 for i = 1:size(fractions,1)
-    fprintf(fid,'%s%s',char(fileInfo{fractions(i,1)}),',');
+    fprintf(fid,'%s%s',char(fileInfo{fractions(i,1),2}),',');
     fprintf(fid,'%f ,%f,%f,%f,%f,',fractions(i,[2:6])); %Classification Values (5 vals, cell 5)
-    fprintf(fid,'%s,\n',char(fileInfo{fractions(i,1),2})); %File Location for Classification Images
+    fprintf(fid,'%s,\n',char(fileInfo{fractions(i,1),3})); %File Location for Classification Images
 end
 fclose(fid);
 msgbox('Completed processing of classification results.','Done!')
