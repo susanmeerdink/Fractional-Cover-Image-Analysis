@@ -96,6 +96,9 @@ if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a
         %Setting up variables for workspace and future analysis
         varname = fnames;
         varname = char(strtok(varname,'.'));
+        if isvarname(varname) == 0
+            varname = strcat('var_',varname);
+        end
         assignin('base',varname,importdata([folder,char(fnames)])); %assigning to workspace
         fileInfo{size(fileInfo,1)+1,1} = varname;
         fileInfo{size(fileInfo,1),2} = folder;
@@ -136,6 +139,9 @@ else %if multiple files are selected
         %Setting up variables for workspace and future analysis
         varname = fnames(n);
         varname = char(strtok(varname,'.'));
+        if isvarname(varname) == 0
+            varname = strcat('var_',varname);
+        end
         assignin('base',char(varname),importdata([folder,char(fnames(n))]));
         fileInfo{size(fileInfo,1)+1,1} = varname;
         fileInfo{size(fileInfo,1),2} = folder;
@@ -181,7 +187,7 @@ allVars = evalin('base','who');
 fileInfo = evalin('base','fileInfo');
 total = 0; %total number of things to display
 index = []; %indices to display
-for i = 1:size(fileInfo,1)
+for i = 1:size(fileInfo,1) %get the 
     if strcmp(fileInfo{i,3},'Orig')== 1
         total = total + 1;
         index = [index i];
