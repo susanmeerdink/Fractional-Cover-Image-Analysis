@@ -12,7 +12,7 @@ function varargout = gui_image_analysis(varargin)
 %      GUI_IMAGE_ANALYSIS('Property','Value',...) creates a new GUI_IMAGE_ANALYSIS or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
 %      applied to the GUI before gui_image_analysis_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
+%      unrecognized property name or inva                         lid value makes property application
 %      stop.  All inputs are passed to gui_image_analysis_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
@@ -81,6 +81,7 @@ function load_pushbutton_Callback(hObject, eventdata, handles)
 % this function loads in the files for image analysis
 
 evalin('base','load tree') %Load in the classification tree for future steps
+evalin('base','load treeUpdated') %Load in the classification tree for future steps
 [fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on');
 try %If fileInfo exists (only happens if you are loading in files a second time)
     fileInfo = evalin('base','fileInfo');
@@ -125,7 +126,7 @@ if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a
         class_path = strcat(class_folder,class_name,'.',splitname(2));
         var_class_name = strcat('var_',class_name);
         if exist(char(class_path),'file')
-            input =[crop_folder,char(class_name),'.',char(splitname(2))];
+            input =[class_folder,char(class_name),'.',char(splitname(2))];
             assignin('base',char(var_class_name),importdata(input));
             fileInfo{size(fileInfo,1)+1,1} = var_class_name;
             fileInfo{size(fileInfo,1),2} = class_name;
@@ -335,6 +336,8 @@ fileInfo = evalin('base','fileInfo');
 count = 1;
 fractions = [];
 t0 = evalin('base','t0');
+tree = evalin('base','tree');
+versionTest = version('-release');
 
 for i = 1: size(x,1) %Loop through files
     if strcmp(x{i,3},'no') == 1 && strcmp(x{i,2},'yes') == 1 %If the file has been cropped, but not classified
@@ -356,13 +359,19 @@ for i = 1: size(x,1) %Loop through files
         ratioGR = all_rgb(:,2)./all_rgb(:,1);
         sumRGB = sum(all_rgb,2);
         data = [all_rgb,ratioGR,sumRGB];
-        treeOut_x_0=treeval(t0,data);      
-        %Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
+        
+        if str2num(versionTest(1:4)) < 2016
+            treeOut_x_0 = treeval(t0,data);
+            %Warning: treefit will be removed in a future release. Use the predict method of an object returned by fitctree or fitrtree instead. 
+        else
+            treeOut_x_0 = predict(tree,data);
+        end
+                     
         R=all_rgb(:,1);
         G=all_rgb(:,2);
         B=all_rgb(:,3);
-        treeOut_x_0(B>G+40 & R>160)=4; %Blue Flowers
-        treeOut_x_0(R./B>1.8 & G./B>1.8 & R+G>400)=5; %YELLOW FLOWERS
+        treeOut_x_0(B > G + 40 & R > 160) = 4; %Blue Flowers
+        treeOut_x_0(R./B > 1.8 & G./B > 1.8 & R + G > 400) = 5; %YELLOW FLOWERS
         fractions(count,:) = horzcat(size(fileInfo,1)+1,hist(treeOut_x_0,1:5)/length(sumRGB));
         %Column Organization: index of fileInfo, Percentages of NPV, Shade, GV, Blue Flowers, Yellow Flowers
 
@@ -403,9 +412,9 @@ for i = 1: size(x,1) %Loop through files
             [num2str(100*fractions(count,4),2),'% Green Vegetation'],...
             [num2str(100*fractions(count,5),2),'% Blue Flowers'],...
             [num2str(100*fractions(count,6),2),'% Yellow Flowers']};
-        versionTest = version('-release');
-        if str2num(versionTest(1:4)) == 2015
-            %Only works for MATLAB 2015
+
+        if str2num(versionTest(1:4)) > 2014
+            %Only works for MATLAB 2015 or newer
             colorbar('Location','west',...
                 'Ticks',[0.1, 0.3, 0.5, 0.7, 0.9],...
                 'FontSize',14,...
