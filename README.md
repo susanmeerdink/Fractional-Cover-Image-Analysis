@@ -13,7 +13,7 @@ blue and yellow flowers. This code is used to process this imagery and get perce
 
 ### Dependencies/ Requirements:
 This code was designed for a Nikon Coolpix 5700. It may work on other imagery, but needs to be tested.
-Developed on MATLAB 2015 and MATLAB 2013. 
+Developed on MATLAB 2015 and MATLAB 2013. Code has been updated to support MATLAB 2016.
 
 ### Steps:
 #### STARTING PROGRAM:
@@ -43,7 +43,7 @@ Developed on MATLAB 2015 and MATLAB 2013.
 *This decision tree was built for the Coal Oil Point Reserve site. Use caution if using in a different area.
 2. The program will classify the first image that has been cropped but not classified. 
 3. A figure will pop up with the cropped image, classified image, and a colorbar. The colorbar includes the percentages for each of the classes present in the image. 
-4. The program will automatically save the classified image. An additional folder will be added to the directory containing the original folders titled "Classification". The image will be saved into this new Classification folder with the originalname_class.jpg.
+4. The program will automatically save the classified image and an additional image of the gui figure (cropped image, classified image, and fractional results). An additional folder will be added to the directory containing the original folders titled "Classification". The image will be saved into this new Classification folder with the originalname_class.jpg.
 5. A dialog window will appear saying "Do you want to continue cropping?". To move on to the next image, hit yes. If you are done classifying for now, hit no. 
 
 #### OUTPUT CLASSIFICATION RESULTS:
