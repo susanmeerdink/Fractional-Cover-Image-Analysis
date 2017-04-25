@@ -443,6 +443,7 @@ for i = 1: size(x,1) %Loop through files
         if isdir(cflder)== 0 %If the directory doesn't exist make it
             mkdir(cflder)
         end
+        saveas(gca, strcat(cflder,new_name,'_fractions.jpg'))
         fname = strcat(cflder,new_name,'.jpg');
         imwrite(yout,cmap,fname);
         
