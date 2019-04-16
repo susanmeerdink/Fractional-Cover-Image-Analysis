@@ -22,7 +22,7 @@ function varargout = gui_image_analysis(varargin)
 
 % Edit the above text to modify the response to help gui_image_analysis
 
-% Last Modified by GUIDE v2.5 12-Jul-2016 10:55:18
+% Last Modified by GUIDE v2.5 16-Apr-2019 11:11:29
 % Modified by Susan Meerdink
 
 % Begin initialization code - DO NOT EDIT
@@ -82,7 +82,7 @@ function load_pushbutton_Callback(hObject, eventdata, handles)
 
 evalin('base','load tree') %Load in the classification tree for future steps
 evalin('base','load treeUpdated') %Load in the classification tree for future steps
-[fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*.JPG','Select Files to Load','MultiSelect','on');
+[fnames,folder] = uigetfile('C:\IDEAS\Digital Images\*','Select Files to Load','MultiSelect','on');
 try %If fileInfo exists (only happens if you are loading in files a second time)
     fileInfo = evalin('base','fileInfo');
 catch %If fileInfo doesn't exist
@@ -95,15 +95,15 @@ if iscell(fnames) == 0  %If no or one file are selected, fnames is returned as a
         errordlg('No Files Selected','Error');
     else %if one file is selected
         %Setting up variables for workspace and future analysis
-        varname = fnames;%get filename to prepare for matlab variable
-        varname = char(strtok(varname,'.'));% remove file extension
-        filename  = varname; %Save the original file name
+        varname = char(strtok(fnames,'.'));% remove file extension
+        [~,filename,ext] = fileparts(char(fnames)); %set the original file name and extension
         varname = strcat('var_',varname);%add var_ to variable name in case it starts with numbers
         assignin('base',varname,importdata([folder,char(fnames)])); %assigning to workspace
         fileInfo{size(fileInfo,1)+1,1} = varname;
         fileInfo{size(fileInfo,1),2} = filename;
         fileInfo{size(fileInfo,1),3} = folder;
         fileInfo{size(fileInfo,1),4} = 'Orig';
+        fileInfo{size(fileInfo,1),5} = ext;
         
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames),'.');
@@ -142,15 +142,15 @@ else %if multiple files are selected
     fileInfo = [];
     for n = 1:size(fnames,2) %Loop through files   
         %Setting up variables for workspace and future analysis
-        varname = fnames(n); %get file name to prepare for variable names
-        varname = char(strtok(varname,'.')); %remove file extension
-        filename = varname; %set the original file name
+        varname = char(strtok(fnames(n),'.')); %remove file extension
+        [~,filename,ext] = fileparts(char(fnames(n))); %set the original file name and extension
         varname = strcat('var_',varname); %add 'var_' onto front in case the file starts with numbers (which isn't a valid matlab variable name
         assignin('base',char(varname),importdata([folder,char(fnames(n))]));
         fileInfo{size(fileInfo,1)+1,1} = varname;
         fileInfo{size(fileInfo,1),2} = filename;
         fileInfo{size(fileInfo,1),3} = folder;
         fileInfo{size(fileInfo,1),4} = 'Orig';
+        fileInfo{size(fileInfo,1),5} = ext;
         
         %Check to see if cropped files exist
         splitname = strsplit(char(fnames(n)),'.');
@@ -270,7 +270,7 @@ for i = 1: size(x,1) %Loop through files
         end
         
         %Display original image
-        I = char(strcat(fileInfo{index,3},fileInfo{index,2},'.jpg')); %Grab file name
+        I = char(strcat(fileInfo{index,3},fileInfo{index,2},fileInfo{index,5})); %Grab file name
         figure('units','normalized','outerposition',[0 0 0.5 0.5])
         imshow(I)
         descr1 = {'1. Drag Rectangle Outline for Crop   2. Right click  3. Select Crop Image 4. The cropped image will appear when done.';};
@@ -466,6 +466,7 @@ for i = 1: size(x,1) %Loop through files
                 break
         end
     else
+        msgbox('Image has not been cropped','continue')
         continue
     end
 end   
@@ -491,3 +492,12 @@ for i = 1:size(fractions,1)
 end
 fclose(fid);
 msgbox('Completed processing of classification results.','Done!')
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+!matlab &
+exit
